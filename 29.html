@@ -41,10 +41,11 @@
     }
 
     가져오기().then(data => {
-        // (A) 날짜 문자열에서 "YYYY-MM-DD"만 추출
+        // (A) 날짜 문자열을 ISO8601로 변환: "YYYY-MM-DDT00:00:00"
+        //     예) "2024-01-01 12:34:56" -> "2024-01-01T00:00:00"
         data.forEach(item => {
-            // 예: "2024-01-01 00:00:00" -> "2024-01-01"
-            item.day = item.day.substring(0, 10);
+            const ymd = item.day.substring(0, 10).trim(); // YYYY-MM-DD
+            item.isoDay = ymd + "T00:00:00";              // "YYYY-MM-DDT00:00:00"
         });
 
         // (B) 데이터가 비어 있다면 종료
@@ -53,8 +54,8 @@
             return;
         }
 
-        // (C) 가장 최근(최대) 날짜 찾기 (YYYY-MM-DD 형태를 Date로 파싱)
-        const maxDateValue = Math.max(...data.map(item => new Date(item.day).getTime()));
+        // (C) 가장 최근(최대) 날짜 찾기 (isoDay를 Date로 파싱)
+        const maxDateValue = Math.max(...data.map(item => new Date(item.isoDay).getTime()));
         const maxDate = new Date(maxDateValue);
 
         // (D) 최대 날짜 기준으로 3개월 전을 계산
@@ -63,15 +64,17 @@
 
         // (E) 3개월 전 ~ 최대 날짜 사이 데이터만 필터링
         const filteredData = data.filter(item => {
-            const itemDate = new Date(item.day);
+            const itemDate = new Date(item.isoDay);
             return itemDate >= threeMonthsBeforeMax && itemDate <= maxDate;
         });
 
         // (F) 날짜 순으로 정렬
-        filteredData.sort((a, b) => new Date(a.day) - new Date(b.day));
+        filteredData.sort((a, b) => new Date(a.isoDay) - new Date(b.isoDay));
 
         // (G) x축 카테고리(날짜) 목록 (중복 제거)
-        const categories = [...new Set(filteredData.map(item => item.day))];
+        //     여기서 'categories'는 "YYYY-MM-DDT00:00:00" 형태로 쓰며,
+        //     ApexCharts가 datetime으로 인식하도록 함
+        const categories = [...new Set(filteredData.map(item => item.isoDay))];
 
         // (H) 거래소 목록 (중복 제거)
         const exchanges = [...new Set(filteredData.map(item => item.exchange))];
@@ -80,9 +83,9 @@
         const series = exchanges.map(exchange => {
             return {
                 name: exchange,
-                data: categories.map(day => {
+                data: categories.map(isoDay => {
                     const entry = filteredData.find(
-                        item => item.day === day && item.exchange === exchange
+                        item => item.isoDay === isoDay && item.exchange === exchange
                     );
                     return entry ? entry.value : 0;
                 })
@@ -114,9 +117,7 @@
                         colors: '#ffffff'
                     },
                     hideOverlappingLabels: true,
-                    showDuplicates: false,
-                    // 이미 YYYY-MM-DD 형태이므로 별도의 format 지정 없이 사용
-                    format: 'yyyy-MM-dd'
+                    showDuplicates: false
                 },
                 tickAmount: Math.floor(categories.length / 10)
             },
