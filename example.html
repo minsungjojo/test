@@ -3,23 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <title>BTC Comparison Chart</title>
-  <!-- ApexCharts 라이브러리 로드 -->
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
   <style>
-    /* html, body를 뷰포트 100%로 설정하고 스크롤을 막습니다. */
+    /* iOS Safari 환경 대응:
+       - height: -webkit-fill-available 로 주소창 표시/숨김 시 동적 높이 반영
+       - 동시에 min-height: 100vh 로 다른 브라우저에서도 문제 없도록 처리
+    */
     html, body {
       margin: 0;
       padding: 0;
-      width: 100vw;    /* 뷰포트 가로폭 100% */
-      height: 100vh;   /* 뷰포트 세로높이 100% */
-      overflow: hidden; /* 스크롤 없이 숨김 처리 */
+
+      /* 너비는 100%, 높이는 -webkit-fill-available */
+      width: 100%;
+      min-height: 100vh;
+      height: -webkit-fill-available; /* iOS Safari에서 주소창이 숨겨지거나 나타날 때 */
+
+      /* 스크롤 막기 (차트가 넘쳐도 스크롤 안 보이도록) */
+      overflow: hidden;
+    }
+
+    /* 차트 컨테이너: 부모가 이미 위 규칙으로 전체 화면을 차지하므로
+       #chart에 width/height 100%를 주면 꽉 찬 화면이 됩니다. */
+    #chart {
+      width: 100%;
+      height: 100%;
     }
   </style>
 </head>
 <body>
 
 <script>
-  // 예: JSON 데이터 가공용 함수
   function transformDataToSeries(data) {
     const exchangeMap = {};
     data.forEach(item => {
@@ -36,7 +49,7 @@
     });
   }
 
-  // 300.json (예: 같은 서버 경로)에 있는 데이터를 불러와 차트 생성
+  // 예: 300.json (동일 서버 경로)
   fetch('300.json')
     .then(response => response.json())
     .then(rawData => {
@@ -45,13 +58,9 @@
       const options = {
         chart: {
           type: 'area',
-          /* 
-            ApexCharts 컨테이너를 body로 지정하므로,
-            body 전체가 차트 영역이 됩니다.
-          */
           zoom: { enabled: false },
           stacked: true,
-          toolbar: { show: false } // 툴바 숨기기
+          toolbar: { show: false }
         },
         legend: { position: 'top' },
         dataLabels: { enabled: false },
@@ -66,7 +75,7 @@
         yaxis: {
           labels: {
             formatter: (val) => {
-              // K / M / B 단위 축약
+              // 값 축약 K/M/B
               const absVal = Math.abs(val);
               if (absVal >= 1.0e9) {
                 return (val / 1.0e9).toFixed(1) + 'B'; 
@@ -90,11 +99,13 @@
         series: seriesData
       };
 
-      /*
-        body 자체를 차트 컨테이너로 사용하는 방법:
-        new ApexCharts(document.body, options).render();
-      */
-      const chart = new ApexCharts(document.body, options);
+      // body 자체를 차트 컨테이너로 써도 되고, 
+      // 또는 document.querySelector('#chart')를 만들고 싶다면 아래처럼 div를 추가해도 됩니다.
+      const container = document.createElement('div');
+      container.id = 'chart';
+      document.body.appendChild(container);
+
+      const chart = new ApexCharts(container, options);
       chart.render();
     })
     .catch(err => {
