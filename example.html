@@ -2,47 +2,33 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <!-- 모바일에서 반응형 화면 스케일링을 위해 설정 -->
+  <!-- 모바일 기기에서 반응형으로 동작하기 위한 viewport 설정 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Responsive BTC Comparison Chart</title>
-
-  <!-- ApexCharts 라이브러리 로드 -->
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-
   <style>
-    /* 전체 페이지 레이아웃 설정 */
+    /* 전체 페이지를 100%로 설정 */
     html, body {
       margin: 0;
       padding: 0;
       width: 100%;
       height: 100%;
-      display: flex;
-      flex-direction: column;
     }
 
-    /* 상단 헤더(고정 높이 예시: 50px) */
-    header {
-      flex: 0 0 50px;       /* 고정 높이 50px */
-      background: #f0f0f0;  /* 눈에 보이도록 살짝 배경색 지정 */
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-    }
-
-    /* 메인 영역: 남은 공간 전체를 차지 */
+    /* main 영역을 화면 전체로 사용 */
     main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
+      width: 100%;
+      height: 100%;
+      display: flex;          /* 차트 컨테이너를 flex로 배치 */
+      flex-direction: column; 
     }
 
-    /* 차트 컨테이너: flex 1 => 상위(main)의 남은 공간 전부 차지 */
+    /* chart-container가 메인에서 남은 공간 모두 차지 */
     .chart-container {
-      flex: 1;
+      flex: 1;    /* 주어진 공간을 전부 사용 */
     }
 
-    /* 실제 차트는 부모 컨테이너(.chart-container)의 100% 크기로 채움 */
+    /* 실제 차트는 부모(.chart-container)의 100% 크기 */
     #chart {
       width: 100%;
       height: 100%;
@@ -50,13 +36,7 @@
   </style>
 </head>
 <body>
-
-<!-- 헤더 영역 (예: 로고, 메뉴, 타이틀 등) -->
-<header>
-  상단 바 (고정 높이)
-</header>
-
-<!-- 메인(차트) 영역 -->
+<!-- 상단바를 제거하고 main만 사용 -->
 <main>
   <div class="chart-container">
     <div id="chart"></div>
@@ -64,10 +44,9 @@
 </main>
 
 <script>
-  /* JSON 데이터를 가공해 시리즈 형태로 반환하는 함수 */
+  // 예) JSON 데이터 가공하는 함수
   function transformDataToSeries(data) {
     const exchangeMap = {};
-
     data.forEach(item => {
       const { exchange, day, value } = item;
       if (!exchangeMap[exchange]) {
@@ -82,20 +61,18 @@
     });
   }
 
-  /* 300.json에서 데이터 불러오기 (서버 동일 경로 가정) */
+  // 300.json에서 데이터 불러오기 (서버 동일 경로 가정)
   fetch('300.json')
     .then(response => response.json())
     .then(rawData => {
       const seriesData = transformDataToSeries(rawData);
 
-      /* 차트 옵션 정의 */
       const options = {
         chart: {
           type: 'area',
           zoom: { enabled: false },
           stacked: true,
-          /* 툴바 숨기기 */
-          toolbar: { show: false }
+          toolbar: { show: false } // 툴바 숨기기
         },
         legend: { position: 'top' },
         dataLabels: { enabled: false },
@@ -109,7 +86,7 @@
         },
         yaxis: {
           labels: {
-            /* K, M, B 단위 축약 예시 */
+            // K, M, B 단위로 축약
             formatter: function (val) {
               const absVal = Math.abs(val);
               if (absVal >= 1.0e9) {
@@ -133,11 +110,10 @@
             }
           }
         },
-        /* 반응형 설정(옵션):
-           화면이 특정 너비 이하가 되면 레전드 위치를 변경하는 등 커스텀 가능 */
+        // 반응형 설정 예: 화면 폭 480px 이하일 때 레전드 위치를 bottom으로
         responsive: [
           {
-            breakpoint: 480, // width 480px 이하
+            breakpoint: 480,
             options: {
               legend: {
                 position: 'bottom'
@@ -145,11 +121,9 @@
             }
           }
         ],
-        /* 실제 데이터 */
         series: seriesData
       };
 
-      /* #chart에 차트 렌더링 */
       const chart = new ApexCharts(document.querySelector("#chart"), options);
       chart.render();
     })
