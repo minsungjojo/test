@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>BTC on CEX Comparison</title>
+  <!-- ApexCharts CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+</head>
+<body>
+
+<h2>BTC on CEX Comparison (Stacked Area Chart)</h2>
+<div id="chart"></div>
+
+<script>
+// 1) 거래소별 데이터를 ApexCharts의 series 형식으로 변환하기 위한 함수
+function transformDataToSeries(data) {
+  const exchangeMap = {};
+
+  data.forEach(item => {
+    const exchange = item.exchange;
+    const dateStr  = item.day;  // 예) "2024-01-01 00:00:00"
+    const value    = item.value;
+
+    if (!exchangeMap[exchange]) {
+      exchangeMap[exchange] = [];
+    }
+    exchangeMap[exchange].push({
+      x: dateStr,  // 또는 new Date(dateStr)
+      y: value
+    });
+  });
+
+  // exchangeMap의 key(거래소)마다 data를 날짜순 정렬 후 series 배열로 변환
+  return Object.keys(exchangeMap).map(exchangeName => {
+    const sortedData = exchangeMap[exchangeName].sort(
+      (a, b) => new Date(a.x) - new Date(b.x)
+    );
+    return {
+      name: exchangeName,
+      data: sortedData
+    };
+  });
+}
+
+// 2) fetch를 통해 29.json 불러오기
+fetch('300.json') // 실제 29.json 파일 경로/URL로 수정 필요
+  .then(response => response.json())
+  .then(rawData => {
+    // 3) 불러온 JSON 데이터를 series 형태로 변환
+    const seriesData = transformDataToSeries(rawData);
+
+    // 4) ApexCharts 설정
+    const options = {
+      chart: {
+        type: 'area',
+        height: 600,
+        stacked: true,    // 누적 영역 차트
+        toolbar: { show: true }
+      },
+      legend: {
+        position: 'top'
+      },
+      dataLabels: { enabled: false },
+      stroke: {
+        curve: 'smooth',
+        width: 1
+      },
+      xaxis: {
+        type: 'datetime',
+        tickAmount: 10
+      },
+      yaxis: {
+        labels: {
+          formatter: function (val) {
+            return val.toFixed(0) + ' BTC';
+          }
+        }
+      },
+      tooltip: {
+        shared: true,
+        x: { format: 'yyyy-MM-dd' },
+        y: {
+          formatter: function (val) {
+            return val.toLocaleString() + ' BTC';
+          }
+        }
+      },
+      series: seriesData
+    };
+
+    // 5) 차트 렌더링
+    const chart = new ApexCharts(document.querySelector("#chart"), options);
+    chart.render();
+  })
+  .catch(err => {
+    console.error('Error loading JSON:', err);
+  });
+</script>
+
+</body>
+</html>
