@@ -2,23 +2,22 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>BTC on CEX Comparison</title>
+  <title>BTC Comparison Chart</title>
   <!-- ApexCharts CDN -->
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 </head>
 <body>
 
-<h2>BTC on CEX Comparison (Stacked Area Chart)</h2>
+<!-- 상단 제목이나 버튼 없이 차트만 표시합니다 -->
 <div id="chart"></div>
 
 <script>
-// 1) 거래소별 데이터를 ApexCharts의 series 형식으로 변환하기 위한 함수
 function transformDataToSeries(data) {
   const exchangeMap = {};
 
   data.forEach(item => {
     const exchange = item.exchange;
-    const dateStr  = item.day;  // 예) "2024-01-01 00:00:00"
+    const dateStr  = item.day;
     const value    = item.value;
 
     if (!exchangeMap[exchange]) {
@@ -30,7 +29,6 @@ function transformDataToSeries(data) {
     });
   });
 
-  // exchangeMap의 key(거래소)마다 data를 날짜순 정렬 후 series 배열로 변환
   return Object.keys(exchangeMap).map(exchangeName => {
     const sortedData = exchangeMap[exchangeName].sort(
       (a, b) => new Date(a.x) - new Date(b.x)
@@ -42,20 +40,19 @@ function transformDataToSeries(data) {
   });
 }
 
-// 2) fetch를 통해 29.json 불러오기
-fetch('300.json') // 실제 29.json 파일 경로/URL로 수정 필요
+// JSON 파일 불러오기 (경로/이름은 실제 환경에 맞게 수정)
+fetch('300.json')
   .then(response => response.json())
   .then(rawData => {
-    // 3) 불러온 JSON 데이터를 series 형태로 변환
     const seriesData = transformDataToSeries(rawData);
 
-    // 4) ApexCharts 설정
     const options = {
       chart: {
         type: 'area',
         height: 600,
-        stacked: true,    // 누적 영역 차트
-        toolbar: { show: true }
+        stacked: true,
+        // 버튼(툴바) 제거
+        toolbar: { show: false }
       },
       legend: {
         position: 'top'
@@ -88,7 +85,6 @@ fetch('300.json') // 실제 29.json 파일 경로/URL로 수정 필요
       series: seriesData
     };
 
-    // 5) 차트 렌더링
     const chart = new ApexCharts(document.querySelector("#chart"), options);
     chart.render();
   })
