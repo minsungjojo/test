@@ -5,13 +5,28 @@
   <title>BTC Comparison Chart</title>
   <!-- ApexCharts CDN -->
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+  <!-- 화면 전체를 차지하기 위한 스타일 설정 -->
+  <style>
+    html, body {
+      margin: 0; 
+      padding: 0; 
+      width: 100%; 
+      height: 100%;
+    }
+    #chart {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
 </head>
 <body>
 
-<!-- 상단 제목이나 버튼 없이 차트만 표시합니다 -->
+<!-- 차트만 표시 -->
 <div id="chart"></div>
 
 <script>
+// 거래소별 데이터를 ApexCharts의 series 형식으로 변환
 function transformDataToSeries(data) {
   const exchangeMap = {};
 
@@ -24,7 +39,7 @@ function transformDataToSeries(data) {
       exchangeMap[exchange] = [];
     }
     exchangeMap[exchange].push({
-      x: dateStr,  // 또는 new Date(dateStr)
+      x: dateStr,
       y: value
     });
   });
@@ -40,7 +55,7 @@ function transformDataToSeries(data) {
   });
 }
 
-// JSON 파일 불러오기 (경로/이름은 실제 환경에 맞게 수정)
+// JSON 파일 불러오기
 fetch('300.json')
   .then(response => response.json())
   .then(rawData => {
@@ -49,9 +64,10 @@ fetch('300.json')
     const options = {
       chart: {
         type: 'area',
-        height: 600,
+        // 화면 전체를 활용하도록, 높이/너비를 따로 지정하지 않음
+        // 확대 기능(Zoom) 비활성화
+        zoom: { enabled: false },
         stacked: true,
-        // 버튼(툴바) 제거
         toolbar: { show: false }
       },
       legend: {
