@@ -5,17 +5,25 @@
   <title>BTC Comparison Chart</title>
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
   <style>
-    /* 화면 전체 차트 & 스크롤 제거 설정 */
+    /* 화면 전체 사용 + 스크롤 제거 설정 */
     html, body {
       margin: 0;
       padding: 0;
       width: 100%;
       height: 100%;
-      overflow: hidden; /* 스크롤 없애기 */
+      overflow: hidden; /* 스크롤 막기 */
     }
+    /* 차트를 브라우저 뷰포트 전체에 꽉 채움 */
     #chart {
-      width: 100%;
-      height: 100%;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    /* 필요 시 툴팁 크기를 뷰포트 비율로 제한하는 예시 */
+    .apexcharts-tooltip {
+      max-width: 30vw !important;
+      max-height: 20vh !important;
+      overflow: auto;
     }
   </style>
 </head>
@@ -24,77 +32,85 @@
 <div id="chart"></div>
 
 <script>
-function transformDataToSeries(data) {
-  const exchangeMap = {};
-  data.forEach(item => {
-    const { exchange, day, value } = item;
-    if (!exchangeMap[exchange]) {
-      exchangeMap[exchange] = [];
-    }
-    exchangeMap[exchange].push({ x: day, y: value });
-  });
+  function transformDataToSeries(data) {
+    const exchangeMap = {};
 
-  return Object.keys(exchangeMap).map(exchangeName => {
-    const sortedData = exchangeMap[exchangeName].sort((a, b) => new Date(a.x) - new Date(b.x));
-    return {
-      name: exchangeName,
-      data: sortedData
-    };
-  });
-}
+    data.forEach(item => {
+      const { exchange, day, value } = item;
+      if (!exchangeMap[exchange]) {
+        exchangeMap[exchange] = [];
+      }
+      exchangeMap[exchange].push({ x: day, y: value });
+    });
 
-// 예시: 300.json에서 데이터 페치
-fetch('300.json')
-  .then(response => response.json())
-  .then(rawData => {
-    const seriesData = transformDataToSeries(rawData);
+    return Object.keys(exchangeMap).map(exchangeName => {
+      const sortedData = exchangeMap[exchangeName].sort((a, b) => new Date(a.x) - new Date(b.x));
+      return {
+        name: exchangeName,
+        data: sortedData
+      };
+    });
+  }
 
-    const options = {
-      chart: {
-        type: 'area',
-        zoom: { enabled: false },
-        stacked: true,
-        toolbar: { show: false }
-      },
-      legend: { position: 'top' },
-      dataLabels: { enabled: false },
-      stroke: { curve: 'smooth', width: 1 },
-      xaxis: {
-        type: 'datetime',
-        tickAmount: 10
-      },
-      yaxis: {
-        labels: {
-          formatter: (val) => {
-            const absVal = Math.abs(val);
-            if (absVal >= 1.0e9) {
-              return (val / 1.0e9).toFixed(1) + 'B';
-            } else if (absVal >= 1.0e6) {
-              return (val / 1.0e6).toFixed(1) + 'M';
-            } else if (absVal >= 1.0e3) {
-              return (val / 1.0e3).toFixed(1) + 'K';
-            } else {
-              return val.toFixed(0);
+  // JSON 데이터 로드 예시 (300.json이 같은 서버 경로에 있다고 가정)
+  fetch('300.json')
+    .then(response => response.json())
+    .then(rawData => {
+      const seriesData = transformDataToSeries(rawData);
+
+      const options = {
+        chart: {
+          type: 'area',
+          zoom: { enabled: false },
+          stacked: true,
+          toolbar: { show: false } /* toolbar 숨기기 */
+        },
+        legend: {
+          position: 'top'
+        },
+        dataLabels: { enabled: false },
+        stroke: {
+          curve: 'smooth',
+          width: 1
+        },
+        xaxis: {
+          type: 'datetime',
+          tickAmount: 10
+        },
+        yaxis: {
+          labels: {
+            formatter: function (val) {
+              const absVal = Math.abs(val);
+              if (absVal >= 1.0e9) {
+                return (val / 1.0e9).toFixed(1) + 'B'; 
+              } else if (absVal >= 1.0e6) {
+                return (val / 1.0e6).toFixed(1) + 'M';
+              } else if (absVal >= 1.0e3) {
+                return (val / 1.0e3).toFixed(1) + 'K';
+              } else {
+                return val.toFixed(0);
+              }
             }
           }
-        }
-      },
-      tooltip: {
-        shared: true,
-        x: { format: 'yyyy-MM-dd' },
-        y: {
-          formatter: (val) => val.toLocaleString() + ' BTC'
-        }
-      },
-      series: seriesData
-    };
+        },
+        tooltip: {
+          shared: true,
+          x: { format: 'yyyy-MM-dd' },
+          y: {
+            formatter: function (val) {
+              return val.toLocaleString() + ' BTC';
+            }
+          }
+        },
+        series: seriesData
+      };
 
-    const chart = new ApexCharts(document.querySelector("#chart"), options);
-    chart.render();
-  })
-  .catch(err => {
-    console.error('Error loading JSON:', err);
-  });
+      const chart = new ApexCharts(document.querySelector("#chart"), options);
+      chart.render();
+    })
+    .catch(err => {
+      console.error('Error loading JSON:', err);
+    });
 </script>
 
 </body>
