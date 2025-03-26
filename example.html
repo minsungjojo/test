@@ -12,9 +12,9 @@
       margin: 0;
       padding: 0;
       width: 100%;
-      height: 99%;
-      /* 필요하다면 기본 스크롤을 숨길 수 있음 (자동으로 잘 맞으면 굳이 안 써도 됨) */
-      /* overflow: hidden; */
+      height: 100%;
+      /* 스크롤이 생기지 않도록 숨김 처리 */
+      overflow: hidden;
     }
 
     /* 메인 영역도 100% 사용 */
@@ -71,7 +71,6 @@
       const options = {
         chart: {
           type: 'area',
-          /* 차트 사이즈를 부모 컨테이너의 100%로 맞춰서 반응형 동작하게 함 */
           width: '100%',
           height: '100%',
           zoom: { enabled: false },
