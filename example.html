@@ -31,14 +31,10 @@
       align-items: center;      /* 세로 중앙 정렬 */
     }
 
-    /* #chart는 직접 너비/높이를 100% 줄 필요는 없고,
-       ApexCharts에서 width, height를 90%로 지정하면 
-       그 내부에서 자동으로 90%가 적용됨.
-       #chart에 별도 크기 지정이 필요한 경우만 설정. */
+    /* 차트 자체를 가로/세로 90%로 설정 */
     #chart {
-      /* width: 100%;
-      height: 100%; */
-      /* 필요하다면 추가 */
+      width: 90%;
+      height: 90%;
     }
   </style>
 </head>
@@ -76,9 +72,7 @@
       const options = {
         chart: {
           type: 'area',
-          // 부모(컨테이너) 크기의 90%만 사용
-          width: '90%',
-          height: '90%',
+          // width, height 지정 없이, #chart 스타일(CSS)에서 90%로 설정
           zoom: { enabled: false },
           stacked: true,
           toolbar: { show: false } // 툴바 숨기기
