@@ -12,29 +12,28 @@
       margin: 0;
       padding: 0;
       width: 100%;
-      height: 10%;
+      height: 100%;
+      /* 필요하다면 기본 스크롤을 숨길 수 있음 (자동으로 잘 맞으면 굳이 안 써도 됨) */
+      /* overflow: hidden; */
     }
 
-    /* main도 100% 사용 */
+    /* 메인 영역도 100% 사용 */
     main {
       width: 100%;
-      height: 10%;
+      height: 100%;
       display: flex;
       flex-direction: column;
     }
 
     /* 차트를 감쌀 컨테이너는 남은 공간 전부 사용 */
     .chart-container {
-      flex: 1; /* 남은 공간 전부 차지 */
-      display: flex; 
-      justify-content: center;  /* 가로 중앙 정렬 */
-      align-items: center;      /* 세로 중앙 정렬 */
+      flex: 1; /* 남은 공간을 전부 차지 */
     }
 
-    /* 차트 자체를 가로/세로 90%로 설정 */
+    /* 실제 차트 영역도 가로/세로 100% */
     #chart {
-      width: 95%;
-      height: 10%;
+      width: 100%;
+      height: 100%;
     }
   </style>
 </head>
@@ -72,7 +71,9 @@
       const options = {
         chart: {
           type: 'area',
-          // width, height 지정 없이, #chart 스타일(CSS)에서 90%로 설정
+          /* 차트 사이즈를 부모 컨테이너의 100%로 맞춰서 반응형 동작하게 함 */
+          width: '100%',
+          height: '100%',
           zoom: { enabled: false },
           stacked: true,
           toolbar: { show: false } // 툴바 숨기기
