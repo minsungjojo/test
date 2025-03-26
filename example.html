@@ -3,10 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>BTC Comparison Chart</title>
-  <!-- ApexCharts CDN -->
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-
-  <!-- 화면 전체를 차지하기 위한 스타일 설정 -->
   <style>
     html, body {
       margin: 0; 
@@ -22,11 +19,9 @@
 </head>
 <body>
 
-<!-- 차트만 표시 -->
 <div id="chart"></div>
 
 <script>
-// 거래소별 데이터를 ApexCharts의 series 형식으로 변환
 function transformDataToSeries(data) {
   const exchangeMap = {};
 
@@ -55,7 +50,6 @@ function transformDataToSeries(data) {
   });
 }
 
-// JSON 파일 불러오기
 fetch('300.json')
   .then(response => response.json())
   .then(rawData => {
@@ -64,8 +58,6 @@ fetch('300.json')
     const options = {
       chart: {
         type: 'area',
-        // 화면 전체를 활용하도록, 높이/너비를 따로 지정하지 않음
-        // 확대 기능(Zoom) 비활성화
         zoom: { enabled: false },
         stacked: true,
         toolbar: { show: false }
@@ -82,10 +74,26 @@ fetch('300.json')
         type: 'datetime',
         tickAmount: 10
       },
+      // ==============================
+      // 여기서 Y축 레이블을 K, M 등으로 축약
+      // ==============================
       yaxis: {
         labels: {
           formatter: function (val) {
-            return val.toFixed(0) + ' BTC';
+            // 값이 매우 클 경우 K(천), M(백만), B(십억) 등으로 표기
+            const absVal = Math.abs(val);
+            if (absVal >= 1.0e9) {
+              // 10억 이상
+              return (val / 1.0e9).toFixed(1) + 'B'; 
+            } else if (absVal >= 1.0e6) {
+              // 백만 이상
+              return (val / 1.0e6).toFixed(1) + 'M';
+            } else if (absVal >= 1.0e3) {
+              // 천 이상
+              return (val / 1.0e3).toFixed(1) + 'K';
+            } else {
+              return val.toFixed(0); // 그 외에는 정수로 표시
+            }
           }
         }
       },
@@ -94,6 +102,7 @@ fetch('300.json')
         x: { format: 'yyyy-MM-dd' },
         y: {
           formatter: function (val) {
+            // 툴팁에서는 콤마+BTC 표기를 유지할 수도 있음
             return val.toLocaleString() + ' BTC';
           }
         }
