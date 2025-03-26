@@ -5,30 +5,35 @@
   <!-- 모바일 기기에서 반응형으로 동작하기 위한 viewport 설정 -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Responsive BTC Comparison Chart</title>
+  <!-- ApexCharts CDN -->
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
   <style>
-    /* 전체 페이지를 100%로 설정 */
+    /* 브라우저 전체를 꽉 쓰고, 스크롤바를 숨깁니다 */
     html, body {
       margin: 0;
       padding: 0;
       width: 100%;
       height: 100%;
+      overflow: hidden; /* 스크롤바 제거 */
     }
 
-    /* main 영역을 화면 전체로 사용(브라우저 높이 100%) */
+    /* 메인 영역도 100%를 사용하고 flex로 배치 */
     main {
-      width: 100%;
-      height: 100vh; /* 화면의 100% 높이 */
       display: flex;
       flex-direction: column;
+      width: 100%;
+      height: 100%;
     }
 
-    /* chart-container가 main에서 남은 공간 모두 차지 */
+    /* 남은 공간을 모두 차트 컨테이너가 사용하도록 */
     .chart-container {
-      flex: 1; /* 주어진 공간을 전부 사용 */
+      flex: 1; 
+      /* margin이나 padding을 주면 스크롤이 생길 수 있으므로 0 처리 */
+      margin: 0;
+      padding: 0;
     }
 
-    /* 실제 차트는 부모(.chart-container)의 100% 크기 */
+    /* 차트가 부모 크기에 맞춰 100%로 채워집니다 */
     #chart {
       width: 100%;
       height: 100%;
@@ -69,6 +74,10 @@
       const options = {
         chart: {
           type: 'area',
+          // 차트가 부모 컨테이너에 꽉 차도록
+          width: '100%',
+          height: '100%',
+          parentHeightOffset: 0, // 기본 여백 제거
           zoom: { enabled: false },
           stacked: true,
           toolbar: { show: false } // 툴바 숨기기
