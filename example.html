@@ -3,38 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <title>BTC Comparison Chart</title>
+  <!-- ApexCharts 라이브러리 로드 -->
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
   <style>
-    /* 화면 전체 사용 + 스크롤 제거 설정 */
+    /* html, body를 뷰포트 100%로 설정하고 스크롤을 막습니다. */
     html, body {
       margin: 0;
       padding: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden; /* 스크롤 막기 */
-    }
-    /* 차트를 브라우저 뷰포트 전체에 꽉 채움 */
-    #chart {
-      width: 100vw;
-      height: 100vh;
-    }
-
-    /* 필요 시 툴팁 크기를 뷰포트 비율로 제한하는 예시 */
-    .apexcharts-tooltip {
-      max-width: 30vw !important;
-      max-height: 20vh !important;
-      overflow: auto;
+      width: 100vw;    /* 뷰포트 가로폭 100% */
+      height: 100vh;   /* 뷰포트 세로높이 100% */
+      overflow: hidden; /* 스크롤 없이 숨김 처리 */
     }
   </style>
 </head>
 <body>
 
-<div id="chart"></div>
-
 <script>
+  // 예: JSON 데이터 가공용 함수
   function transformDataToSeries(data) {
     const exchangeMap = {};
-
     data.forEach(item => {
       const { exchange, day, value } = item;
       if (!exchangeMap[exchange]) {
@@ -45,14 +32,11 @@
 
     return Object.keys(exchangeMap).map(exchangeName => {
       const sortedData = exchangeMap[exchangeName].sort((a, b) => new Date(a.x) - new Date(b.x));
-      return {
-        name: exchangeName,
-        data: sortedData
-      };
+      return { name: exchangeName, data: sortedData };
     });
   }
 
-  // JSON 데이터 로드 예시 (300.json이 같은 서버 경로에 있다고 가정)
+  // 300.json (예: 같은 서버 경로)에 있는 데이터를 불러와 차트 생성
   fetch('300.json')
     .then(response => response.json())
     .then(rawData => {
@@ -61,13 +45,15 @@
       const options = {
         chart: {
           type: 'area',
+          /* 
+            ApexCharts 컨테이너를 body로 지정하므로,
+            body 전체가 차트 영역이 됩니다.
+          */
           zoom: { enabled: false },
           stacked: true,
-          toolbar: { show: false } /* toolbar 숨기기 */
+          toolbar: { show: false } // 툴바 숨기기
         },
-        legend: {
-          position: 'top'
-        },
+        legend: { position: 'top' },
         dataLabels: { enabled: false },
         stroke: {
           curve: 'smooth',
@@ -79,7 +65,8 @@
         },
         yaxis: {
           labels: {
-            formatter: function (val) {
+            formatter: (val) => {
+              // K / M / B 단위 축약
               const absVal = Math.abs(val);
               if (absVal >= 1.0e9) {
                 return (val / 1.0e9).toFixed(1) + 'B'; 
@@ -97,15 +84,17 @@
           shared: true,
           x: { format: 'yyyy-MM-dd' },
           y: {
-            formatter: function (val) {
-              return val.toLocaleString() + ' BTC';
-            }
+            formatter: (val) => val.toLocaleString() + ' BTC'
           }
         },
         series: seriesData
       };
 
-      const chart = new ApexCharts(document.querySelector("#chart"), options);
+      /*
+        body 자체를 차트 컨테이너로 사용하는 방법:
+        new ApexCharts(document.body, options).render();
+      */
+      const chart = new ApexCharts(document.body, options);
       chart.render();
     })
     .catch(err => {
