@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>일일 활성 주소 수</title>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: black; /* Page background color */
+            color: white; /* Text color */
+            overflow: hidden; /* Prevent scrollbars */
+        }
+        #chart {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="chart"></div>
+
+    <script>
+        // Base64 데이터를 가져와 디코딩하여 JSON 데이터를 반환하는 함수
+        async function 가져오기() {
+            const 응답 = await fetch('33.json'); // Change to 5.json
+            const base64Data = await 응답.text(); // Get Base64 encoded string from the file
+            const jsonData = JSON.parse(atob(base64Data)); // Decode the Base64 string to JSON data
+            return jsonData.map(item => {
+                return { x: item.Date, y: item.Total_Active_Addresses }; // 데이터 형식 변환
+            });
+        }
+
+        // ApexCharts 옵션 설정
+        async function createChart() {
+            const seriesData = await 가져오기();
+
+            var options = {
+                chart: {
+                    type: 'line',
+                    width: '100%',
+                    height: '100%',
+                    background: '#000000', // Chart background color to black
+                    toolbar: {
+                        tools: {
+                            download: false // Remove the download button
+                        }
+                    }
+                },
+                series: [{
+                    name: '일일 활성 주소 수',
+                    data: seriesData // 데이터 사용
+                }],
+                xaxis: {
+                    type: 'datetime',
+                    labels: {
+                        style: { colors: '#FFFFFF' } // X-axis label color to white
+                    }
+                },
+                yaxis: {
+                    labels: {
+                        style: { colors: '#FFFFFF' } // Y-axis label color to white
+                    }
+                },
+                stroke: {
+                    colors: ['#00FF00'], // Line color to bright green
+                    width: 2 // Line thickness
+                },
+                tooltip: {
+                    x: {
+                        format: 'yyyy-MM-dd'
+                    },
+                    theme: 'dark' // Tooltip theme to dark
+                },
+                grid: {
+                    borderColor: '#333333' // Grid line color to dark gray
+                },
+                markers: {
+                    size: 0 // Remove markers (circles) from the line
+                }
+            };
+
+            var chart = new ApexCharts(document.querySelector("#chart"), options);
+            chart.render();
+        }
+
+        // 차트 생성 함수 호출
+        createChart();
+    </script>
+</body>
+</html>

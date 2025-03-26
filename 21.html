@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>비트코인 일별 가치</title>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background-color: black;
+            color: white;
+            overflow: hidden; /* Prevent scrolling */
+        }
+        
+        #chart {
+            width: 100vw; /* Full viewport width */
+            height: 100vh; /* Full viewport height */
+        }
+    </style>
+</head>
+<body>
+    <div id="chart"></div>
+
+    <script>
+        function base64Decode(base64String) {
+            try {
+                const decodedString = atob(base64String);
+                return JSON.parse(decodedString);
+            } catch (e) {
+                console.error('Error decoding Base64 string:', e.message);
+                console.error('Base64 String:', base64String); // 디버깅용 출력
+                return null;
+            }
+        }
+
+        async function fetchData() {
+            const response = await fetch('21.json');
+            const base64Data = await response.text();
+            console.log('Fetched Base64 Data:', base64Data);
+
+            const jsonData = base64Decode(base64Data);
+            console.log('Decoded JSON Data:', jsonData);
+
+            if (!jsonData) {
+                throw new Error('Failed to decode Base64 data.');
+            }
+
+            const seriesData = jsonData
+                .map(entry => ({
+                    x: new Date(entry.day),
+                    y: parseFloat(entry.value.toFixed(1))
+                }))
+                .sort((a, b) => a.x - b.x);
+
+            console.log('Series Data:', seriesData);
+            return seriesData;
+        }
+
+        async function renderChart() {
+            const seriesData = await fetchData();
+
+            var options = {
+                chart: {
+                    type: 'line',
+                    height: '100%',
+                    width: '100%',
+                    background: '#000000',
+                    toolbar: {
+                        tools: {
+                            download: false
+                        }
+                    }
+                },
+                stroke: {
+                    width: 3,
+                    colors: ['#ffcc00']
+                },
+                series: [{
+                    name: '비트코인 가치',
+                    data: seriesData
+                }],
+                xaxis: {
+                    type: 'datetime',
+                    labels: {
+                        style: {
+                            colors: '#ffffff'
+                        },
+                        format: 'yyyy-MM-dd'
+                    }
+                },
+                yaxis: {
+                    labels: {
+                        style: {
+                            colors: '#ffffff'
+                        }
+                    }
+                },
+                tooltip: {
+                    theme: 'dark'
+                },
+                grid: {
+                    borderColor: '#333333'
+                },
+                dataLabels: {
+                    enabled: false
+                }
+            };
+
+            var chart = new ApexCharts(document.querySelector("#chart"), options);
+            chart.render();
+        }
+
+        renderChart();
+    </script>
+</body>
+</html>
