@@ -2,38 +2,18 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>ApexCharts Tooltip Relative Size</title>
-  <!-- ApexCharts CDN -->
+  <title>BTC Comparison Chart</title>
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-
   <style>
-    /* 화면 전체를 활용하도록 설정 */
     html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
+      margin: 0; 
+      padding: 0; 
+      width: 100%; 
       height: 100%;
     }
     #chart {
       width: 100%;
       height: 100%;
-    }
-
-    /* 
-      ApexCharts 툴팁(.apexcharts-tooltip)에 대해 
-      너비와 높이를 비율(%)로 제한하여 
-      화면을 너무 많이 가리지 않도록 처리합니다. 
-    */
-    .apexcharts-tooltip {
-      max-width: 70% !important;
-      max-height: 70% !important;
-
-      /* 초과 내용은 잘라냄(스크롤 없이 표시) */
-      overflow: hidden !important;
-
-      /* 긴 단어 줄바꿈 처리 */
-      white-space: normal !important; 
-      word-wrap: break-word !important;
     }
   </style>
 </head>
@@ -42,50 +22,78 @@
 <div id="chart"></div>
 
 <script>
-// 1) 가져온 JSON 데이터를 ApexCharts의 series 형식으로 변환하는 예시 함수
 function transformDataToSeries(data) {
-  // 거래소별 예시라면, 아래 로직 참고
-  // 여기서는 단순히 (day, value) -> single series 형태로 구성
-  // 실제로 거래소별 비교를 원하시면 exchange 필드도 참고해서 확장해주세요.
-  
-  return [
-    {
-      name: 'Example',
-      data: data.map(item => ({
-        x: item.day,  // "YYYY-MM-DD" or "YYYY-MM-DD HH:mm:ss" 등
-        y: item.value
-      }))
+  const exchangeMap = {};
+
+  data.forEach(item => {
+    const exchange = item.exchange;
+    const dateStr  = item.day;
+    const value    = item.value;
+
+    if (!exchangeMap[exchange]) {
+      exchangeMap[exchange] = [];
     }
-  ];
+    exchangeMap[exchange].push({
+      x: dateStr,
+      y: value
+    });
+  });
+
+  return Object.keys(exchangeMap).map(exchangeName => {
+    const sortedData = exchangeMap[exchangeName].sort(
+      (a, b) => new Date(a.x) - new Date(b.x)
+    );
+    return {
+      name: exchangeName,
+      data: sortedData
+    };
+  });
 }
 
-// 2) 300.json 파일을 fetch로 불러오기
 fetch('300.json')
   .then(response => response.json())
   .then(rawData => {
     const seriesData = transformDataToSeries(rawData);
 
-    // 3) ApexCharts 옵션 설정
     const options = {
       chart: {
         type: 'area',
-        // 화면 전역에 렌더링하므로 높이/너비 명시 X
-        stacked: true,
         zoom: { enabled: false },
-        toolbar: { show: false },
+        stacked: true,
+        toolbar: { show: false }
+      },
+      legend: {
+        position: 'top'
+      },
+      dataLabels: { enabled: false },
+      stroke: {
+        curve: 'smooth',
+        width: 1
       },
       xaxis: {
         type: 'datetime',
+        tickAmount: 10
       },
+      // ==============================
+      // 여기서 Y축 레이블을 K, M 등으로 축약
+      // ==============================
       yaxis: {
-        // 필요 시 y축 레이블 포맷(custom)
         labels: {
-          formatter: (val) => {
-            // 큰 숫자 k, m, b 로 줄이려면
-            // if (val >= 1e9) return (val/1e9).toFixed(1) + 'B';
-            // ...
-            // 여기서는 단순 콤마 표기로 예시
-            return val.toLocaleString();
+          formatter: function (val) {
+            // 값이 매우 클 경우 K(천), M(백만), B(십억) 등으로 표기
+            const absVal = Math.abs(val);
+            if (absVal >= 1.0e9) {
+              // 10억 이상
+              return (val / 1.0e9).toFixed(1) + 'B'; 
+            } else if (absVal >= 1.0e6) {
+              // 백만 이상
+              return (val / 1.0e6).toFixed(1) + 'M';
+            } else if (absVal >= 1.0e3) {
+              // 천 이상
+              return (val / 1.0e3).toFixed(1) + 'K';
+            } else {
+              return val.toFixed(0); // 그 외에는 정수로 표시
+            }
           }
         }
       },
@@ -93,18 +101,20 @@ fetch('300.json')
         shared: true,
         x: { format: 'yyyy-MM-dd' },
         y: {
-          formatter: (val) => val.toLocaleString() + ' BTC'
+          formatter: function (val) {
+            // 툴팁에서는 콤마+BTC 표기를 유지할 수도 있음
+            return val.toLocaleString() + ' BTC';
+          }
         }
       },
       series: seriesData
     };
 
-    // 4) 차트 생성 및 렌더
     const chart = new ApexCharts(document.querySelector("#chart"), options);
     chart.render();
   })
   .catch(err => {
-    console.error('Error loading 300.json:', err);
+    console.error('Error loading JSON:', err);
   });
 </script>
 
