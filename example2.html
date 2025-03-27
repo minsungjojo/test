@@ -1,143 +1,58 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html>
 <head>
   <meta charset="UTF-8">
-  <title>Bitcoin Forecasted Supply</title>
   <!-- ApexCharts 라이브러리 -->
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      /* 스크롤이 생기지 않도록 숨김 처리 */
-      overflow: hidden;
-    }
-
-    /* 메인 영역도 100% 사용 */
-    main {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* 차트를 감쌀 컨테이너는 남은 공간 전부 사용 */
-    .chart-container {
-      flex: 1; /* 남은 공간을 전부 차지 */
-    }
-
-    /* 실제 차트 영역도 가로/세로 100% */
-    #chart {
-      width: 100%;
-      height: 100%;
-    }
-  </style>
 </head>
 <body>
+  <!-- 차트를 표시할 영역 -->
+  <div id="chart"></div>
 
-<main>
-  <div class="chart-container">
-    <div id="chart"></div>
-  </div>
-</main>
+  <script>
+    // 301.json에서 데이터 불러오기
+    fetch('301.json')
+      .then(response => response.json())  // JSON 형태로 변환
+      .then(jsonData => {
+        // ApexCharts에서 요구하는 형태 [x축(시간), y축(수치)]로 변환
+        const seriesData = jsonData.map(item => {
+          // x: 날짜/시간, y: 값
+          return [ item.time, item.supply ];
+        });
 
-<script>
-  fetch('301.json')
-    .then(response => response.json())
-    .then(data => {
-      const TOTAL_SUPPLY = 21000000;
-      let issuedSeries = [];
-      let lastIssuedDate = null;
-      let lastIssuedAmount = 0;
-
-      // (1) 발행된 Issued만 모으고, 가장 최신 시점 파악
-      data.forEach(item => {
-        if (item.category === 'Issued') {
-          const time = new Date(item.time);
-          issuedSeries.push({ x: time, y: item.supply });
-          if (!lastIssuedDate || time > lastIssuedDate) {
-            lastIssuedDate = time;
-            lastIssuedAmount = item.supply;
+        // ApexCharts 옵션 설정
+        const options = {
+          chart: {
+            type: 'line',     // 라인 차트
+            height: 450       // 차트 높이
+          },
+          series: [
+            {
+              name: 'Issued Supply',
+              data: seriesData
+            }
+          ],
+          xaxis: {
+            type: 'datetime'  // x축을 시간축으로 설정
+          },
+          yaxis: {
+            title: {
+              text: 'Supply'
+            }
+          },
+          title: {
+            text: 'Issued Supply Over Time',
+            align: 'center'
           }
-        }
+        };
+
+        // 차트 생성 및 렌더링
+        const chart = new ApexCharts(document.querySelector("#chart"), options);
+        chart.render();
+      })
+      .catch(error => {
+        console.error("JSON 데이터를 불러오는 중 오류 발생:", error);
       });
-      // 날짜 순 정렬 (필요 시)
-      issuedSeries.sort((a, b) => a.x - b.x);
-
-      // (2) 가장 최신 발행 시점 + 25년 뒤
-      const forecastedStart = new Date(
-        lastIssuedDate.getFullYear() + 25,
-        lastIssuedDate.getMonth(),
-        lastIssuedDate.getDate()
-      );
-
-      // (3) Forecasted: 25년 뒤 시점 ~ 2140년 (단순 예시)
-      const forecastedSeries = [
-        {
-          x: forecastedStart,
-          y: TOTAL_SUPPLY - lastIssuedAmount
-        },
-        {
-          x: new Date('2140-01-01'),
-          y: 0
-        }
-      ];
-
-      // (4) ApexCharts 옵션
-      const options = {
-        chart: {
-          type: 'area',
-          stacked: true,
-          // 차트 전체 크기는 CSS에서 100%로 제어
-          zoom: { enabled: false },
-          toolbar: { show: false }
-        },
-        // Forecasted 뒤(아래), Issued 위(앞)로
-        series: [
-          { name: 'Forecasted', data: forecastedSeries },
-          { name: 'Issued', data: issuedSeries }
-        ],
-        dataLabels: { enabled: false },
-        stroke: {
-          curve: 'smooth',
-          width: 0
-        },
-        markers: { size: 0 },
-        xaxis: {
-          type: 'datetime',
-          min: new Date('2008-01-01').getTime(),
-          max: new Date('2150-01-01').getTime()
-        },
-        yaxis: {
-          max: TOTAL_SUPPLY,
-          labels: {
-            formatter: val => val.toLocaleString()
-          }
-        },
-        tooltip: {
-          x: { format: 'yyyy-MM-dd' }
-        },
-        title: {
-          text: '',
-          show: false
-        },
-        legend: {
-          position: 'bottom'
-        },
-        colors: ['#f39c12', '#27ae60'],
-        fill: {
-          type: 'solid',
-          opacity: [1, 1]
-        }
-      };
-
-      const chart = new ApexCharts(document.querySelector("#chart"), options);
-      chart.render();
-    })
-    .catch(error => console.error('JSON 로드 오류:', error));
-</script>
-
+  </script>
 </body>
 </html>
