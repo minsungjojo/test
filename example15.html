@@ -1,205 +1,200 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>스택형 막대 차트</title>
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-    <style>
-        body {
-            background-color: #fff;
-            color: #000;
-            margin: 0;
-            padding: 0;
-            /* 스크롤을 허용하고 싶다면 주석 해제
-               overflow-y: auto; 
-            */
-        }
-        #chart {
-            width: 100vw;
-            /* 넓은 화면(데스크톱)에서 100vh로 하고,
-               모바일에서는 responsive 옵션에서 높이를 조금 조정해줍니다. */
-            height: 100vh;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>스택형 막대 차트</title>
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <style>
+      body {
+          background-color: #fff;
+          color: #000;
+          margin: 0;
+          padding: 0;
+      }
+      #chart {
+          width: 100vw;
+          height: 100vh;
+      }
+  </style>
 </head>
 <body>
-    <div id="chart"></div>
+<div id="chart"></div>
 
-    <script>
-        async function 가져오기() {
-            const 응답 = await fetch('15.json'); // Base64 인코딩된 JSON 파일 경로
-            const base64Data = await 응답.text();
-            const jsonData = JSON.parse(atob(base64Data));
-            return jsonData;
-        }
+<script>
+  async function 가져오기() {
+      const 응답 = await fetch('15.json'); // Base64 인코딩된 JSON 파일 경로
+      const base64Data = await 응답.text();
+      const jsonData = JSON.parse(atob(base64Data));
+      return jsonData;
+  }
 
-        가져오기()
-            .then(data => {
-                const categories = [...new Set(data.map(item => item.date))]
-                    .sort((a, b) => new Date(a) - new Date(b));
-                const narratives = ['L1', 'Runes', 'L2', 'DEX', 'AI', 'LRT', 'Perpetuals'];
+  가져오기()
+      .then(data => {
+          const categories = [...new Set(data.map(item => item.date))]
+              .sort((a, b) => new Date(a) - new Date(b));
+          const narratives = ['L1', 'Runes', 'L2', 'DEX', 'AI', 'LRT', 'Perpetuals'];
 
-                const series = narratives.map(narrative => {
-                    return {
-                        name: narrative,
-                        data: categories.map(date => {
-                            const entriesForDate = data.filter(item => item.date === date);
-                            const totalForDate = entriesForDate.reduce((sum, item) => sum + item.count, 0);
-                            const entry = entriesForDate.find(item => item.narrative === narrative);
-                            return entry ? (entry.count / totalForDate) * 100 : 0;
-                        })
-                    };
-                });
+          const series = narratives.map(narrative => {
+              return {
+                  name: narrative,
+                  data: categories.map(date => {
+                      const entriesForDate = data.filter(item => item.date === date);
+                      const totalForDate = entriesForDate.reduce((sum, item) => sum + item.count, 0);
+                      const entry = entriesForDate.find(item => item.narrative === narrative);
+                      return entry ? (entry.count / totalForDate) * 100 : 0;
+                  })
+              };
+          });
 
-                const colors = [
-                    '#2E93FA',
-                    '#66DA26',
-                    '#546E7A',
-                    '#E91E63',
-                    '#FF9800',
-                    '#9C27B0',
-                    '#20B2AA'
-                ];
+          const colors = [
+              '#2E93FA',
+              '#66DA26',
+              '#546E7A',
+              '#E91E63',
+              '#FF9800',
+              '#9C27B0',
+              '#20B2AA'
+          ];
 
-                const options = {
-                    chart: {
-                        type: 'bar',
-                        height: '100%',
-                        width: '100%',
-                        stacked: true,
-                        stackType: '100%',
-                        background: '#fff',
-                        toolbar: {
-                            tools: {
-                                download: false
-                            }
-                        }
-                    },
-                    series: series,
-                    xaxis: {
-                        categories: categories,
-                        labels: {
-                            style: {
-                                colors: '#000'
-                            },
-                            rotate: -45, // 데스크톱 기준 각도
-                            showDuplicates: false,
-                            hideOverlappingLabels: true,
-                            trim: true
-                        },
-                        tickAmount: 6
-                    },
-                    yaxis: {
-                        labels: {
-                            style: {
-                                colors: '#000'
-                            },
-                            formatter: function (val) {
-                                return val.toFixed(0) + '%';
-                            }
-                        }
-                    },
-                    colors: colors,
-                    tooltip: {
-                        enabled: true,
-                        shared: true,
-                        followCursor: true,
-                        intersect: false,
-                        theme: 'light',
-                        style: {
-                            fontSize: '16px',
-                            fontFamily: 'Arial, sans-serif',
-                            colors: ['#000']
-                        },
-                        y: {
-                            formatter: function (val) {
-                                return val.toFixed(2) + "%";
-                            }
-                        },
-                        marker: {
-                            fillColors: colors
-                        },
-                        padding: {
-                            left: 10,
-                            right: 10,
-                            top: 10,
-                            bottom: 10
-                        }
-                    },
-                    fill: {
-                        opacity: 1
-                    },
-                    legend: {
-                        position: 'right', // 데스크톱 기본: 오른쪽
-                        offsetY: 10,
-                        labels: {
-                            colors: '#000'
-                        }
-                    },
-                    dataLabels: {
-                        enabled: false
-                    },
-                    // 화면 너비별 반응형 옵션
-                    responsive: [
-                        {
-                            // 768px 이하 (태블릿/모바일)
-                            breakpoint: 768,
-                            options: {
-                                chart: {
-                                    /* 모바일에서 vh로 잡으면 기기에 따라 잘리는 경우가 있으므로
-                                       살짝 줄여봄. 필요시 수치 조절 */
-                                    height: 'calc(100vh - 20px)'
-                                },
-                                xaxis: {
-                                    tickAmount: 4,
-                                    labels: {
-                                        rotate: 0 // 모바일에서는 라벨을 수평으로
-                                    }
-                                },
-                                legend: {
-                                    position: 'bottom', // 아래로 내림
-                                    offsetY: 0         // 너무 띄우지 않도록 0으로
-                                },
-                                grid: {
-                                    // 범례가 아래 뜰 때 너무 밀리지 않도록
-                                    padding: {
-                                        bottom: 20
-                                    }
-                                }
-                            }
-                        },
-                        {
-                            // 480px 이하 (모바일)
-                            breakpoint: 480,
-                            options: {
-                                chart: {
-                                    height: 'calc(100vh - 20px)'
-                                },
-                                xaxis: {
-                                    tickAmount: 2,
-                                    labels: {
-                                        rotate: 0
-                                    }
-                                },
-                                legend: {
-                                    position: 'bottom',
-                                    offsetY: 0
-                                },
-                                grid: {
-                                    padding: {
-                                        bottom: 20
-                                    }
-                                }
-                            }
-                        }
-                    ]
-                };
+          const options = {
+              chart: {
+                  type: 'bar',
+                  height: '100%',
+                  width: '100%',
+                  stacked: true,
+                  stackType: '100%',
+                  background: '#fff',
+                  toolbar: {
+                      tools: {
+                          download: false
+                      }
+                  }
+              },
+              series: series,
+              xaxis: {
+                  categories: categories,
+                  labels: {
+                      style: {
+                          colors: '#000'
+                      },
+                      rotate: -45, // 데스크톱 기준
+                      showDuplicates: false,
+                      hideOverlappingLabels: true,
+                      trim: true
+                  },
+                  tickAmount: 6
+              },
+              yaxis: {
+                  labels: {
+                      style: {
+                          colors: '#000'
+                      },
+                      formatter: function (val) {
+                          return val.toFixed(0) + '%';
+                      }
+                  }
+              },
+              colors: colors,
+              tooltip: {
+                  enabled: true,
+                  shared: true,
+                  followCursor: true,
+                  intersect: false,
+                  theme: 'light',
+                  style: {
+                      fontSize: '16px',
+                      fontFamily: 'Arial, sans-serif',
+                      colors: ['#000']
+                  },
+                  y: {
+                      formatter: function (val) {
+                          return val.toFixed(2) + "%";
+                      }
+                  },
+                  marker: {
+                      fillColors: colors
+                  },
+                  padding: {
+                      left: 10,
+                      right: 10,
+                      top: 10,
+                      bottom: 10
+                  }
+              },
+              fill: {
+                  opacity: 1
+              },
+              legend: {
+                  position: 'right', // 데스크톱: 오른쪽
+                  offsetY: 10,
+                  labels: {
+                      colors: '#000'
+                  }
+              },
+              dataLabels: {
+                  enabled: false
+              },
+              responsive: [
+                  {
+                      // 768px 이하 (태블릿/모바일)
+                      breakpoint: 768,
+                      options: {
+                          chart: {
+                              // 모바일에서 전체 화면 꽉 차게 쓰고 싶으면 100vh 사용 가능하나
+                              // 브라우저/기기에 따라 잘리는 일 방지 위해 약간 축소
+                              height: 'calc(100vh - 20px)'
+                          },
+                          xaxis: {
+                              tickAmount: 4,
+                              labels: {
+                                  rotate: 0 // 모바일: 라벨 수평
+                              }
+                          },
+                          legend: {
+                              position: 'bottom', 
+                              // 레전드를 위로 살짝 당겨서 x축 라벨과 간격 줄임
+                              offsetY: -10 
+                          },
+                          grid: {
+                              padding: {
+                                  // 차트 아래쪽 여백 줄여서 범례가 차트에 더 가까워지도록
+                                  bottom: 0 
+                              }
+                          }
+                      }
+                  },
+                  {
+                      // 480px 이하 (모바일)
+                      breakpoint: 480,
+                      options: {
+                          chart: {
+                              height: 'calc(100vh - 20px)'
+                          },
+                          xaxis: {
+                              tickAmount: 2,
+                              labels: {
+                                  rotate: 0
+                              }
+                          },
+                          legend: {
+                              position: 'bottom',
+                              offsetY: -10
+                          },
+                          grid: {
+                              padding: {
+                                  bottom: 0
+                              }
+                          }
+                      }
+                  }
+              ]
+          };
 
-                const chart = new ApexCharts(document.querySelector("#chart"), options);
-                chart.render();
-            })
-            .catch(error => console.error('데이터를 가져오는 중 오류가 발생했습니다:', error));
-    </script>
+          const chart = new ApexCharts(document.querySelector("#chart"), options);
+          chart.render();
+      })
+      .catch(error => console.error('데이터를 가져오는 중 오류가 발생했습니다:', error));
+</script>
 </body>
 </html>
