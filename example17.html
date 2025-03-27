@@ -75,25 +75,22 @@
             width: '100%',
             stacked: true,
             stackType: '100%',
-            background: '#ffffff', 
+            background: '#ffffff',
+            // ▼ 여기서 toolbar를 숨김
             toolbar: {
-              tools: { download: false }
+              show: false
             }
           },
           series: series,
-          // x축을 datetime으로 설정
           xaxis: {
             type: 'datetime',
             labels: {
-              // 겹치면 일부 라벨 숨김
               hideOverlappingLabels: true,
-              // '...'으로 생략하지 않음
               trim: false,
               style: {
                 fontSize: '12px',
                 colors: '#000000'
               },
-              // 날짜 형식을 YYYY-MM-DD로 지정
               datetimeFormatter: {
                 year: 'yyyy',
                 month: 'yyyy-MM',
@@ -112,14 +109,12 @@
             '#FFD700','#87CEEB','#FF69B4',
             '#32CD32','#FFA07A','#BA55D3','#20B2AA'
           ],
-          // 툴팁에서도 x(날짜) 값 형식 지정
           tooltip: {
             enabled: true,
             shared: true,
             followCursor: true,
             intersect: false,
             x: {
-              // 툴팁의 날짜 포맷
               format: 'yyyy-MM-dd'
             },
             y: {
