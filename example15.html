@@ -4,23 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>스택형 막대 차트</title>
+  
+  <!-- ApexCharts 라이브러리 -->
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-  <style>
-    body {
-      background-color: #fff;
-      color: #000;
-      margin: 0;
-      padding: 0;
-    }
-    #chart {
-      width: 100vw;
-      height: 100vh;
-    }
-  </style>
+  
+  <!-- 외부 CSS 파일 연결 (파일명과 경로를 환경에 맞게 수정하세요) -->
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <!-- 차트를 표시할 영역 -->
   <div id="chart"></div>
 
+  <!-- 차트를 렌더링하는 스크립트 -->
   <script>
     async function 가져오기() {
       const 응답 = await fetch("15.json"); // Base64 인코딩된 JSON 파일 경로
@@ -82,10 +77,9 @@
               rotate: 0,       // 라벨 수평
               showDuplicates: false,
               hideOverlappingLabels: true,
-              // ▼ 여기서부터 잘리는 문제 해결 ▼
-              trim: false,     // 줄임표(...)로 표시 방지
-              maxHeight: 100,  // 라벨 최대 높이를 적당히 늘림 (필요시 조절)
-              // maxWidth: 100  // 가로 폭도 조절하고 싶으면 사용
+              trim: false,     // 줄임표(...) 방지
+              maxHeight: 100,  // 라벨 최대 높이
+              // maxWidth: 100  // 필요하면 가로 폭도 설정
             },
             tickAmount: 6,
           },
@@ -130,8 +124,8 @@
             opacity: 1,
           },
           legend: {
-            position: "bottom",  // 모바일 등에서 아래로
-            offsetY: 0,          // 요청하신 대로 offsetY 0
+            position: "bottom",
+            offsetY: 0,          // 레전드를 x축과 가까이
             labels: {
               colors: "#000",
             },
@@ -141,7 +135,6 @@
           },
           responsive: [
             {
-              // 필요하다면 여기서도 xaxis.labels 설정을 오버라이드할 수 있음
               breakpoint: 768,
               options: {
                 xaxis: {
@@ -163,7 +156,7 @@
         const chart = new ApexCharts(document.querySelector("#chart"), options);
         chart.render();
       })
-      .catch((error) =>
+      .catch((error) => 
         console.error("데이터를 가져오는 중 오류가 발생했습니다:", error)
       );
   </script>
