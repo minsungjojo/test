@@ -6,7 +6,6 @@
   <title>Issued vs Forecasted Supply</title>
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
   <style>
-    /* 전체 화면을 가득 채우고 스크롤을 숨기는 기본 설정 */
     html, body {
       margin: 0;
       padding: 0;
@@ -14,18 +13,15 @@
       height: 100%;
       overflow: hidden;
     }
-    /* 화면 전체를 flex로 세로 배치 */
     main {
       width: 100%;
       height: 100%;
       display: flex;
       flex-direction: column;
     }
-    /* 차트를 감싸는 컨테이너를 flex:1로 설정해 남은 공간 전부 차지 */
     .chart-container {
       flex: 1;
     }
-    /* 차트 영역을 가로·세로 100%로 설정 */
     #chart {
       width: 100%;
       height: 100%;
@@ -89,6 +85,11 @@
                 return value.toFixed(2);
               }
             }
+          }
+        },
+        tooltip: {
+          x: {
+            format: 'yyyy-MM-dd'
           }
         }
       };
