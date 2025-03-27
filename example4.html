@@ -3,24 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>차트 - 날짜 YYYY-MM 표기</title>
+    <title>차트 확대 비활성 & 버튼 제거 & 큰 숫자 축약</title>
     <!-- ApexCharts CDN -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <style>
+      /* 아래와 같이 html, body, main, .chart-container, #chart에 대한 스타일을 적용합니다. */
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+      body {
+        background-color: #FFF;
+        color: #000;
+      }
+      main {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+      .chart-container {
+        flex: 1;
+      }
+      #chart {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
 </head>
-<body style="background-color: #FFF; color: #000; margin: 0;">
-    <div id="chart" style="width: 100vw; height: 100vh;"></div>
+<body>
+    <main>
+      <!-- 차트 영역을 감싸는 .chart-container -->
+      <div class="chart-container">
+        <div id="chart"></div>
+      </div>
+    </main>
 
     <script>
         // 큰 숫자를 k, m, b로 축약하는 헬퍼 함수
         function 축약표시(값) {
             const absVal = Math.abs(값);
             if (absVal >= 1.0e9) {
+                // 10억 이상 -> b
                 return (값 / 1.0e9).toFixed(2) + 'b';
             } else if (absVal >= 1.0e6) {
+                // 100만 이상 -> m
                 return (값 / 1.0e6).toFixed(2) + 'm';
             } else if (absVal >= 1.0e3) {
+                // 1000 이상 -> k
                 return (값 / 1.0e3).toFixed(2) + 'k';
             } else {
+                // 그보다 작으면 그대로
                 return 값.toLocaleString();
             }
         }
@@ -49,20 +85,9 @@
         }
 
         function 차트생성(정렬된데이터) {
-            // 날짜를 'YYYY-MM' 형태로 만드는 함수
-            function toYYYYMM(dateObj) {
-                const year = dateObj.getFullYear();
-                // 월이 0부터 시작하므로 +1, 10보다 작으면 앞에 0 붙이기
-                const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-                return `${year}-${month}`;
-            }
-
-            // 월별 라벨 (ex: 2023-07)
-            var 월별 = 정렬된데이터.map(항목 => {
-                const d = new Date(항목.month);
-                return toYYYYMM(d);
-            });
-
+            var 월별 = 정렬된데이터.map(항목 => 
+                new Date(항목.month).toLocaleDateString('ko-KR', { year: 'numeric', month: 'short' })
+            );
             var 볼륨달러 = 정렬된데이터.map(항목 => 항목.volume_dollar);
 
             var 옵션 = {
@@ -70,13 +95,13 @@
                     type: 'line',
                     height: '100%',
                     width: '100%',
-                    background: '#FFF',  // 차트 배경색 흰색
-                    foreColor: '#000',   // 기본 폰트색 검정
+                    background: '#FFF',
+                    foreColor: '#000',
                     zoom: {
-                        enabled: false
+                        enabled: false      // 확대(zoom) 기능 비활성화
                     },
                     toolbar: {
-                        show: false        // 모든 툴바 버튼 숨기기
+                        show: false         // 모든 툴바 버튼 숨기기
                     }
                 },
                 series: [{
@@ -106,17 +131,14 @@
                 tooltip: {
                     theme: 'light',
                     y: {
-                        // 툴팁에서 축약형 쓰고 싶으면 아래처럼:
                         formatter: function (값) {
-                            return '$' + 축약표시(값);
+                            // 축약 사용 시: return '$' + 축약표시(값);
+                            // 풀 숫자를 보고 싶으면:
+                            return '$' + 값.toLocaleString();
                         }
-                        // 원본 전체 숫자로 보고 싶다면:
-                        //formatter: function (값) {
-                        //    return '$' + 값.toLocaleString();
-                        //}
                     }
                 },
-                colors: ['#2E93fA'], // 라인 색상
+                colors: ['#2E93fA'],
                 grid: {
                     borderColor: '#ccc'
                 },
