@@ -1,81 +1,127 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <!-- ApexCharts 라이브러리 -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Responsive BTC Comparison Chart</title>
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    main {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    .chart-container {
+      flex: 1;
+    }
+    #chart {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
 </head>
 <body>
-  <!-- 차트를 표시할 영역 -->
-  <div id="chart"></div>
+<main>
+  <div class="chart-container">
+    <div id="chart"></div>
+  </div>
+</main>
 
-  <script>
-    fetch('301.json')
-      .then(response => response.json())
-      .then(jsonData => {
-        // category가 "Issued"인 데이터
-        const issuedData = jsonData
-          .filter(item => item.category === 'Issued')
-          .map(item => [ item.time, item.supply ]);
+<script>
+  function transformDataToSeries(data) {
+    const exchangeMap = {};
+    data.forEach(item => {
+      const { exchange, day, value } = item;
+      if (!exchangeMap[exchange]) {
+        exchangeMap[exchange] = [];
+      }
+      exchangeMap[exchange].push({ x: day, y: value });
+    });
+    return Object.keys(exchangeMap).map(exchangeName => {
+      const sortedData = exchangeMap[exchangeName].sort((a, b) => new Date(a.x) - new Date(b.x));
+      return { name: exchangeName, data: sortedData };
+    });
+  }
 
-        // category가 "Forecasted"인 데이터
-        const forecastedData = jsonData
-          .filter(item => item.category === 'Forecasted')
-          .map(item => [ item.time, item.supply ]);
-
-        const options = {
-          chart: {
-            type: 'line',
-            height: 450,
-            toolbar: {
-              show: false
-            },
-            zoom: {
-              enabled: false
-            }
-          },
-          series: [
-            {
-              name: 'Issued',
-              data: issuedData
-            },
-            {
-              name: 'Forecasted',
-              data: forecastedData
-            }
-          ],
-          colors: ['#FF4560', '#008FFB'],
-          xaxis: {
-            type: 'datetime'
-          },
-          yaxis: {
-            // 숫자가 커졌을 때 k, M, B 등으로 표시하도록 formatter 설정
-            labels: {
-              formatter: function (value) {
-                if (value >= 1.0e9) {
-                  // 10억 단위 (B)
-                  return (value / 1.0e9).toFixed(2) + 'B';
-                } else if (value >= 1.0e6) {
-                  // 100만 단위 (M)
-                  return (value / 1.0e6).toFixed(2) + 'M';
-                } else if (value >= 1.0e3) {
-                  // 1000 단위 (K)
-                  return (value / 1.0e3).toFixed(1) + 'K';
-                } else {
-                  // 1000 이하이면 그대로 표시
-                  return value.toFixed(2);
-                }
+  fetch('300.json')
+    .then(response => response.json())
+    .then(rawData => {
+      const seriesData = transformDataToSeries(rawData);
+      const options = {
+        chart: {
+          type: 'area',
+          width: '100%',
+          height: '100%',
+          zoom: { enabled: false },
+          stacked: true,
+          toolbar: { show: false }
+        },
+        legend: { position: 'top' },
+        dataLabels: { enabled: false },
+        stroke: {
+          curve: 'smooth',
+          width: 1
+        },
+        xaxis: {
+          type: 'datetime',
+          tickAmount: 10,
+          labels: {
+            format: 'yyyy-MM-dd'
+          }
+        },
+        yaxis: {
+          labels: {
+            formatter: function (val) {
+              const absVal = Math.abs(val);
+              if (absVal >= 1.0e9) {
+                return (val / 1.0e9).toFixed(1) + 'B';
+              } else if (absVal >= 1.0e6) {
+                return (val / 1.0e6).toFixed(1) + 'M';
+              } else if (absVal >= 1.0e3) {
+                return (val / 1.0e3).toFixed(1) + 'K';
+              } else {
+                return val.toFixed(0);
               }
             }
           }
-        };
-
-        const chart = new ApexCharts(document.querySelector("#chart"), options);
-        chart.render();
-      })
-      .catch(error => {
-        console.error("JSON 데이터를 불러오는 중 오류 발생:", error);
-      });
-  </script>
+        },
+        tooltip: {
+          shared: true,
+          x: {
+            format: 'yyyy-MM-dd'
+          },
+          y: {
+            formatter: function (val) {
+              return val.toLocaleString() + ' BTC';
+            }
+          }
+        },
+        responsive: [
+          {
+            breakpoint: 480,
+            options: {
+              legend: {
+                position: 'bottom'
+              }
+            }
+          }
+        ],
+        series: seriesData
+      };
+      const chart = new ApexCharts(document.querySelector("#chart"), options);
+      chart.render();
+    })
+    .catch(err => {
+      console.error('Error loading JSON:', err);
+    });
+</script>
 </body>
 </html>
