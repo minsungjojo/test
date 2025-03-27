@@ -90,13 +90,25 @@
                     labels: {
                         style: {
                             colors: '#000000'
+                        },
+                        formatter: function (value) {
+                            // K, M, B 단위로 표시
+                            if (value >= 1_000_000_000) {
+                                return (value / 1_000_000_000).toFixed(1) + 'B';
+                            } else if (value >= 1_000_000) {
+                                return (value / 1_000_000).toFixed(1) + 'M';
+                            } else if (value >= 1_000) {
+                                return (value / 1_000).toFixed(1) + 'K';
+                            } else {
+                                return value.toFixed(1);
+                            }
                         }
                     }
                 },
                 tooltip: {
                     theme: 'light',
                     x: {
-                        format: 'yyyy-MM-dd' // 툴팁에서 날짜를 YYYY-MM-DD 형식으로 표시
+                        format: 'yyyy-MM-dd'
                     }
                 },
                 grid: {
