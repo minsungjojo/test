@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>차트 - 검정 배경, YYYY-MM, 큰 숫자 축약, 줌/툴바 비활성</title>
+    <!-- ApexCharts CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <style>
+      /* 1) HTML/BODY를 전체 화면으로, overflow 숨김 */
+      html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+      /* 2) 검정 배경, 흰색 텍스트 */
+      body {
+        background-color: #000;
+        color: #FFF;
+      }
+      /* 3) main을 flex 컨테이너로 사용 */
+      main {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+      }
+      /* 4) 차트를 담을 .chart-container는 남은 공간 전부 차지 */
+      .chart-container {
+        flex: 1;
+      }
+      /* 5) #chart를 가로세로 100%로 확장 */
+      #chart {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+</head>
+<body>
+<main>
+  <div class="chart-container">
+    <div id="chart"></div>
+  </div>
+</main>
+
+<script>
+    // 1) 큰 숫자를 k, m, b로 축약하는 헬퍼 함수
+    function 축약표시(값) {
+        const absVal = Math.abs(값);
+        if (absVal >= 1.0e9) {
+            return (값 / 1.0e9).toFixed(2) + 'b';
+        } else if (absVal >= 1.0e6) {
+            return (값 / 1.0e6).toFixed(2) + 'm';
+        } else if (absVal >= 1.0e3) {
+            return (값 / 1.0e3).toFixed(2) + 'k';
+        } else {
+            return 값.toLocaleString();
+        }
+    }
+
+    // 2) 2023-07 처럼 YYYY-MM 형식으로 만드는 함수
+    function toYYYYMM(dateObj) {
+        const year = dateObj.getFullYear();
+        // getMonth()는 0부터 시작 → +1, 두 자리로 맞춤
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        return `${year}-${month}`;
+    }
+
+    // 3) JSON(5.json)에서 Base64 문자열을 가져와 파싱
+    async function 가져오기() {
+        const 응답 = await fetch('5.json');
+        const base64Data = await 응답.text();       // Base64 텍스트
+        const jsonData = JSON.parse(atob(base64Data)); // 디코딩 후 JSON 파싱
+        return jsonData;
+    }
+
+    // 4) 중복 제거: month가 같은 날짜면 하나만 남김
+    function 중복제거(데이터) {
+        const 고유날짜 = {};
+        return 데이터.filter(항목 => {
+            const 날짜 = 항목.month.split(" ")[0];
+            if (!고유날짜[날짜]) {
+                고유날짜[날짜] = true;
+                return true;
+            }
+            return false;
+        });
+    }
+
+    // 5) 날짜 정렬
+    function 날짜정렬(데이터) {
+        return 데이터.sort((a, b) => new Date(a.month) - new Date(b.month));
+    }
+
+    // 6) 차트 생성
+    function 차트생성(정렬된데이터) {
+        // X축 라벨: 2023-07 같이 표시
+        const 월별 = 정렬된데이터.map(항목 => {
+            const d = new Date(항목.month);
+            return toYYYYMM(d);
+        });
+
+        // Y축 데이터
+        const 볼륨달러 = 정렬된데이터.map(항목 => 항목.volume_dollar);
+
+        const 옵션 = {
+            chart: {
+                type: 'line',
+                height: '100%',
+                width: '100%',
+                background: '#000',  // 검정 배경
+                foreColor: '#FFF',   // 폰트 흰색
+                zoom: {
+                    enabled: false   // 확대(zoom) 비활성화
+                },
+                toolbar: {
+                    show: false      // 모든 툴바 버튼 숨기기
+                }
+            },
+            series: [{
+                name: '볼륨 (달러)',
+                data: 볼륨달러
+            }],
+            xaxis: {
+                categories: 월별,
+                labels: {
+                    style: {
+                        colors: '#FFF',
+                        fontSize: '14px'
+                    }
+                }
+            },
+            yaxis: {
+                labels: {
+                    formatter: function (값) {
+                        // "$" + 축약형 표시
+                        return '$' + 축약표시(값);
+                    },
+                    style: {
+                        colors: '#FFF',
+                        fontSize: '14px'
+                    }
+                }
+            },
+            tooltip: {
+                theme: 'dark',  // 어두운 툴팁
+                y: {
+                    formatter: function (값) {
+                        // 축약표시 쓰려면 -> return '$' + 축약표시(값);
+                        // 풀 숫자 -> 아래:
+                        return '$' + 값.toLocaleString();
+                    }
+                }
+            },
+            colors: ['#00E396'],  // 라인 색상 (기존 코드와 동일)
+            grid: {
+                borderColor: '#555'
+            },
+            stroke: {
+                curve: 'smooth'   // 곡선 라인
+            },
+            dataLabels: {
+                enabled: false
+            }
+        };
+
+        const 차트 = new ApexCharts(document.querySelector("#chart"), 옵션);
+        차트.render();
+    }
+
+    // 7) 최종 실행
+    가져오기()
+      .then(데이터 => {
+          const 필터링된데이터 = 중복제거(데이터);
+          const 정렬된데이터 = 날짜정렬(필터링된데이터);
+          차트생성(정렬된데이터);
+      })
+      .catch(error => {
+          console.error('데이터를 가져오는 중 오류 발생:', error);
+      });
+</script>
+</body>
+</html>
