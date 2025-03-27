@@ -60,15 +60,14 @@
 
         // y축 수치를 K, M, B로 축약해주는 formatter 함수
         function formatLargeNumber(value) {
-            // 부호 및 절댓값을 구합니다.
             const sign = value < 0 ? "-" : "";
             const absValue = Math.abs(value);
 
-            if (absValue >= 1.0e9) {       // 10억 이상
+            if (absValue >= 1.0e9) {
                 return sign + (absValue / 1.0e9).toFixed(2) + "B";
-            } else if (absValue >= 1.0e6) { // 100만 이상
+            } else if (absValue >= 1.0e6) {
                 return sign + (absValue / 1.0e6).toFixed(2) + "M";
-            } else if (absValue >= 1.0e3) { // 1000 이상
+            } else if (absValue >= 1.0e3) {
                 return sign + (absValue / 1.0e3).toFixed(2) + "K";
             } else {
                 return sign + absValue.toFixed(2);
@@ -98,19 +97,14 @@
                 }],
                 xaxis: {
                     type: 'datetime',
-                    // tickAmount: 화면에 표시할 x축 라벨의 개수(예시로 8개)
-                    // 필요에 따라 값 증가/감소 가능
-                    tickAmount: 8,
+                    // tickAmount: 필요 시 표시할 라벨 개수 조절
+                    tickAmount: 8, 
                     labels: {
-                        showDuplicates: false, // 중복 날짜 제거
-                        datetimeFormatter: {
-                            year: 'yyyy년',
-                            month: 'MM월',
-                            day: 'dd일',
-                            hour: 'HH시'
-                        },
+                        // 원하시는 날짜 형식 (dd-MM-yy) 지정
+                        format: 'dd-MM-yy', 
+                        showDuplicates: false,
                         style: {
-                            colors: '#000000', // 글자 색상 검정
+                            colors: '#000000',
                             fontSize: '15px'
                         }
                     },
@@ -124,7 +118,7 @@
                 yaxis: {
                     labels: {
                         style: {
-                            colors: '#000000', // 글자 색상 검정
+                            colors: '#000000',
                             fontSize: '15px'
                         },
                         formatter: formatLargeNumber
@@ -139,7 +133,8 @@
                 tooltip: {
                     theme: 'light',
                     x: {
-                        format: 'yy-MM-dd'
+                        // 툴팁에서 표시될 날짜 형식도 동일하게 맞추기
+                        format: 'dd-MM-yy'
                     },
                     y: {
                         formatter: formatLargeNumber
@@ -156,12 +151,12 @@
                                 {
                                     from: -Infinity,
                                     to: 0,
-                                    color: '#ff4a4a' // 마이너스(순유출)
+                                    color: '#ff4a4a'
                                 },
                                 {
                                     from: 0,
                                     to: Infinity,
-                                    color: '#4a90e2' // 플러스(순유입)
+                                    color: '#4a90e2'
                                 }
                             ]
                         }
