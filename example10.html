@@ -59,7 +59,7 @@
                         type: 'bar',
                         height: '100%',
                         width: '100%',
-                        background: '#ffffff', // 차트 배경색을 흰색으로 설정
+                        background: '#ffffff', // 차트 배경색 흰색
                         toolbar: {
                             tools: {
                                 download: false // 다운로드 버튼 비활성화
@@ -70,11 +70,9 @@
                         bar: {
                             horizontal: true,
                             barHeight: '60%',
-                            distributed: true  // 바마다 다른 색상 적용
+                            distributed: true // 바마다 다른 색상
                         }
                     },
-                    /* colors 옵션에 직접 색상 배열을 설정할 수도 있습니다.
-                       원하는 색상들을 추가해보세요. */
                     colors: [
                         '#008FFB', '#00E396', '#FEB019', '#FF4560',
                         '#775DD0', '#546E7A', '#26a69a', '#D10CE8'
@@ -85,43 +83,39 @@
                             return val + '%';
                         },
                         style: {
-                            colors: ['#000000'] // 데이터 라벨을 검정색으로
+                            colors: ['#000000'] // 데이터 라벨(검정색)
                         }
                     },
                     xaxis: {
                         categories: seriesData.map(item => item.x),
                         labels: {
-                            style: { colors: '#000000' } // x축 라벨을 검정색으로
+                            style: { colors: '#000000' }
                         },
                         axisBorder: {
-                            color: '#999999' // x축 테두리 회색
+                            color: '#999999'
                         },
                         axisTicks: {
-                            color: '#999999' // x축 눈금 회색
+                            color: '#999999'
                         }
                     },
                     yaxis: {
                         labels: {
-                            style: { colors: ['#000000'] } // y축 라벨을 검정색으로
+                            style: { colors: ['#000000'] }
                         },
                         axisBorder: {
-                            color: '#999999' // y축 테두리 회색
+                            color: '#999999'
                         },
                         axisTicks: {
-                            color: '#999999' // y축 눈금 회색
+                            color: '#999999'
                         }
                     },
                     tooltip: {
-                        theme: 'light', // 툴팁을 라이트 테마로
+                        theme: 'light',
                         style: {
-                            fontSize: '16px',     // 툴팁 폰트 크기
-                            colors: ['#000000']   // 툴팁 텍스트 색상(검정)
+                            fontSize: '16px',
+                            colors: ['#000000']
                         },
                         fillSeriesColor: false,
-                        marker: {
-                            // distributed: true 설정 시, 막대 색상마다 마커 색이 달라집니다.
-                            // 직접 지정하고 싶다면 fillColors를 배열로 넣을 수 있습니다.
-                        },
                         x: {
                             formatter: function (val) {
                                 return `<span style="color: #000000">${val}</span>`;
@@ -134,10 +128,14 @@
                         }
                     },
                     grid: {
-                        borderColor: '#cccccc' // 그리드 라인 회색
+                        borderColor: '#cccccc'
                     },
                     theme: {
-                        mode: 'light' // 라이트 테마 적용
+                        mode: 'light'
+                    },
+                    // === 범례 숨기기 ===
+                    legend: {
+                        show: false
                     }
                 };
 
