@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlackRock USD 순자금 흐름</title>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <style>
+        body {
+            background-color: white;
+            color: black;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #chart {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="chart"></div>
+
+    <script>
+        // Base64 디코딩 함수
+        function decodeBase64(base64String) {
+            const decodedData = atob(base64String);
+            return JSON.parse(decodedData);
+        }
+
+        // JSON 데이터 로드
+        async function loadJsonData() {
+            try {
+                const response = await fetch('14.json');
+                const base64String = await response.text();
+                const jsonData = decodeBase64(base64String);
+
+                // BlackRock만 필터링 & amount_usd_net_flow가 null이 아닌 것만
+                const filteredData = jsonData
+                    .filter(item => item.issuer === "BlackRock" && item.amount_usd_net_flow !== null)
+                    .map(item => ({
+                        time: new Date(item.time).getTime(),
+                        amount_usd_net_flow: item.amount_usd_net_flow
+                    }));
+
+                // 시간 순으로 정렬
+                filteredData.sort((a, b) => a.time - b.time);
+
+                return filteredData;
+            } catch (error) {
+                console.error('데이터 로드 중 오류 발생:', error);
+                return [];
+            }
+        }
+
+        // y축 수치를 K, M, B로 축약해주는 formatter 함수
+        function formatLargeNumber(value) {
+            // 부호 및 절댓값을 구합니다.
+            const sign = value < 0 ? "-" : "";
+            const absValue = Math.abs(value);
+
+            if (absValue >= 1.0e9) {       // 10억 이상
+                return sign + (absValue / 1.0e9).toFixed(2) + "B";
+            } else if (absValue >= 1.0e6) { // 100만 이상
+                return sign + (absValue / 1.0e6).toFixed(2) + "M";
+            } else if (absValue >= 1.0e3) { // 1000 이상
+                return sign + (absValue / 1.0e3).toFixed(2) + "K";
+            } else {
+                return sign + absValue.toFixed(2);
+            }
+        }
+
+        // 차트 생성
+        async function createChart() {
+            const data = await loadJsonData();
+
+            const options = {
+                chart: {
+                    type: 'bar',
+                    width: '100%',
+                    height: '100%',
+                    background: '#ffffff',
+                    toolbar: {
+                        show: false
+                    },
+                    zoom: {
+                        enabled: false
+                    }
+                },
+                series: [{
+                    name: 'USD 순자금 흐름',
+                    data: data.map(item => ({ x: item.time, y: item.amount_usd_net_flow }))
+                }],
+                xaxis: {
+                    type: 'datetime',
+                    // tickAmount: 화면에 표시할 x축 라벨의 개수(예시로 8개)
+                    // 필요에 따라 값 증가/감소 가능
+                    tickAmount: 8,
+                    labels: {
+                        showDuplicates: false, // 중복 날짜 제거
+                        datetimeFormatter: {
+                            year: 'yyyy년',
+                            month: 'MM월',
+                            day: 'dd일',
+                            hour: 'HH시'
+                        },
+                        style: {
+                            colors: '#000000', // 글자 색상 검정
+                            fontSize: '15px'
+                        }
+                    },
+                    axisBorder: {
+                        color: '#666666'
+                    },
+                    axisTicks: {
+                        color: '#666666'
+                    }
+                },
+                yaxis: {
+                    labels: {
+                        style: {
+                            colors: '#000000', // 글자 색상 검정
+                            fontSize: '15px'
+                        },
+                        formatter: formatLargeNumber
+                    },
+                    axisBorder: {
+                        color: '#666666'
+                    },
+                    axisTicks: {
+                        color: '#666666'
+                    }
+                },
+                tooltip: {
+                    theme: 'light',
+                    x: {
+                        format: 'yy-MM-dd'
+                    },
+                    y: {
+                        formatter: formatLargeNumber
+                    },
+                    style: {
+                        fontSize: '15px',
+                        padding: 10
+                    }
+                },
+                plotOptions: {
+                    bar: {
+                        colors: {
+                            ranges: [
+                                {
+                                    from: -Infinity,
+                                    to: 0,
+                                    color: '#ff4a4a' // 마이너스(순유출)
+                                },
+                                {
+                                    from: 0,
+                                    to: Infinity,
+                                    color: '#4a90e2' // 플러스(순유입)
+                                }
+                            ]
+                        }
+                    }
+                },
+                dataLabels: {
+                    enabled: false
+                },
+                grid: {
+                    borderColor: '#cccccc',
+                    xaxis: {
+                        lines: {
+                            show: true
+                        }
+                    },
+                    yaxis: {
+                        lines: {
+                            show: true
+                        }
+                    }
+                },
+                legend: {
+                    labels: {
+                        colors: '#000000',
+                        fontSize: '20px'
+                    }
+                }
+            };
+
+            const chart = new ApexCharts(document.querySelector("#chart"), options);
+            chart.render();
+        }
+
+        createChart();
+    </script>
+</body>
+</html>
