@@ -79,10 +79,13 @@
               style: {
                 colors: "#000",
               },
-              rotate: 0, // x축 라벨을 일자로 표시
+              rotate: 0,       // 라벨 수평
               showDuplicates: false,
               hideOverlappingLabels: true,
-              trim: true,
+              // ▼ 여기서부터 잘리는 문제 해결 ▼
+              trim: false,     // 줄임표(...)로 표시 방지
+              maxHeight: 100,  // 라벨 최대 높이를 적당히 늘림 (필요시 조절)
+              // maxWidth: 100  // 가로 폭도 조절하고 싶으면 사용
             },
             tickAmount: 6,
           },
@@ -127,8 +130,8 @@
             opacity: 1,
           },
           legend: {
-            position: "right",
-            offsetY: 10,
+            position: "bottom",  // 모바일 등에서 아래로
+            offsetY: 0,          // 요청하신 대로 offsetY 0
             labels: {
               colors: "#000",
             },
@@ -138,49 +141,19 @@
           },
           responsive: [
             {
+              // 필요하다면 여기서도 xaxis.labels 설정을 오버라이드할 수 있음
               breakpoint: 768,
               options: {
-                chart: {
-                  height: "calc(100vh - 20px)",
-                },
                 xaxis: {
                   tickAmount: 4,
-                  // 모바일에서도 회전 없이 그대로 표시
-                  labels: {
-                    rotate: 0,
-                  },
-                },
-                legend: {
-                  position: "bottom",
-                  offsetY: -10,
-                },
-                grid: {
-                  padding: {
-                    bottom: 0,
-                  },
                 },
               },
             },
             {
               breakpoint: 480,
               options: {
-                chart: {
-                  height: "calc(100vh - 20px)",
-                },
                 xaxis: {
-                  tickAmount: 2,
-                  labels: {
-                    rotate: 0,
-                  },
-                },
-                legend: {
-                  position: "bottom",
-                  offsetY: -10,
-                },
-                grid: {
-                  padding: {
-                    bottom: 0,
-                  },
+                  tickAmount: 3,
                 },
               },
             },
