@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ApexCharts 예제 - 확대/툴바 제거</title>
+    <!-- ApexCharts 라이브러리 추가 -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: white; /* 배경색 흰색 */
+            color: black;            /* 기본 글자색 검정 */
+            overflow: hidden;        /* 스크롤 방지 */
+        }
+        #chart {
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <!-- 차트가 표시될 영역 -->
+    <div id="chart"></div>
+
+    <!-- 차트를 렌더링하는 스크립트 -->
+    <script>
+        // JSON 파일 경로
+        const jsonFilePath = '6.json';
+
+        // JSON 데이터를 비동기로 불러와 차트를 생성하는 함수
+        async function loadChart() {
+            try {
+                // Base64로 인코딩된 JSON 파일을 가져오기
+                const response = await fetch(jsonFilePath);
+                const base64Data = await response.text();
+
+                // Base64 데이터를 디코딩하고 JSON 파싱
+                const jsonData = JSON.parse(atob(base64Data));
+
+                // JSON 데이터를 날짜순으로 정렬
+                let sortedData = jsonData.sort((a, b) => new Date(a.day) - new Date(b.day));
+
+                // JSON 데이터를 차트 형식에 맞게 변환
+                let chartData = sortedData.map(item => {
+                    return { x: new Date(item.day).getTime(), y: parseFloat(item.Volume_per_users).toFixed(2) };
+                });
+
+                // 차트 옵션 설정
+                const options = {
+                    chart: {
+                        type: 'line',
+                        width: '100%',
+                        height: '100%',
+                        background: '#ffffff',
+                        toolbar: {
+                            show: false // 툴바(버튼)를 전부 숨김
+                        },
+                        zoom: {
+                            enabled: false // 줌 기능 비활성화
+                        }
+                    },
+                    series: [{
+                        name: '사용자당 볼륨',
+                        data: chartData
+                    }],
+                    stroke: {
+                        width: 1,
+                        colors: ['#000000']
+                    },
+                    xaxis: {
+                        type: 'datetime',
+                        labels: {
+                            // YYYY-MM 형식으로 표시
+                            formatter: function(value) {
+                                const date = new Date(value);
+                                const year = date.getFullYear();
+                                const month = ('0' + (date.getMonth() + 1)).slice(-2);
+                                return `${year}-${month}`;
+                            },
+                            style: {
+                                colors: '#000000',
+                                fontSize: '12px'
+                            }
+                        }
+                    },
+                    yaxis: {
+                        labels: {
+                            formatter: function(value) {
+                                return value.toFixed(2);
+                            },
+                            style: {
+                                colors: '#000000',
+                                fontSize: '12px'
+                            }
+                        }
+                    },
+                    tooltip: {
+                        theme: 'light',
+                        y: {
+                            formatter: function(value) {
+                                return value.toFixed(2);
+                            }
+                        },
+                        x: {
+                            // 툴팁엔 년-월-일(예: 2023-02-15) 형식으로 표시
+                            formatter: function(value) {
+                                const date = new Date(value);
+                                const year = date.getFullYear();
+                                const month = ('0' + (date.getMonth() + 1)).slice(-2);
+                                const day = ('0' + date.getDate()).slice(-2);
+                                return `${year}-${month}-${day}`;
+                            }
+                        }
+                    },
+                    grid: {
+                        borderColor: '#cccccc'
+                    }
+                };
+
+                // 차트를 렌더링
+                const chart = new ApexCharts(document.querySelector("#chart"), options);
+                chart.render();
+            } catch (error) {
+                console.error("데이터를 로드하거나 차트를 생성하는 중 오류 발생:", error);
+            }
+        }
+
+        // 차트 로드 호출
+        loadChart();
+
+        // 창 크기 변경 시 차트 크기를 다시 조정
+        window.addEventListener('resize', () => {
+            document.querySelector("#chart").style.width = `${window.innerWidth}px`;
+            document.querySelector("#chart").style.height = `${window.innerHeight}px`;
+        });
+    </script>
+</body>
+</html>
