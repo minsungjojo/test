@@ -6,16 +6,19 @@
     <title>스택형 막대 차트</title>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
-        /* 페이지 배경을 흰색으로, 텍스트는 검정으로 설정 */
         body {
             background-color: #fff;
             color: #000;
             margin: 0;
-            overflow: hidden; 
+            padding: 0;
+            /* 스크롤을 허용하고 싶다면 주석 해제
+               overflow-y: auto; 
+            */
         }
-        /* 화면 전체를 차지하도록 설정 */
         #chart {
             width: 100vw;
+            /* 넓은 화면(데스크톱)에서 100vh로 하고,
+               모바일에서는 responsive 옵션에서 높이를 조금 조정해줍니다. */
             height: 100vh;
         }
     </style>
@@ -26,8 +29,8 @@
     <script>
         async function 가져오기() {
             const 응답 = await fetch('15.json'); // Base64 인코딩된 JSON 파일 경로
-            const base64Data = await 응답.text(); // Base64 문자열을 텍스트로 가져옴
-            const jsonData = JSON.parse(atob(base64Data)); // Base64 문자열을 디코드하고 JSON으로 파싱
+            const base64Data = await 응답.text();
+            const jsonData = JSON.parse(atob(base64Data));
             return jsonData;
         }
 
@@ -37,7 +40,6 @@
                     .sort((a, b) => new Date(a) - new Date(b));
                 const narratives = ['L1', 'Runes', 'L2', 'DEX', 'AI', 'LRT', 'Perpetuals'];
 
-                // 시리즈 구성
                 const series = narratives.map(narrative => {
                     return {
                         name: narrative,
@@ -50,7 +52,6 @@
                     };
                 });
 
-                // 흰 배경에서 잘 보이는 색상 팔레트 예시
                 const colors = [
                     '#2E93FA',
                     '#66DA26',
@@ -68,10 +69,10 @@
                         width: '100%',
                         stacked: true,
                         stackType: '100%',
-                        background: '#fff', // 차트 배경 흰색
+                        background: '#fff',
                         toolbar: {
                             tools: {
-                                download: false // 다운로드 버튼 비활성화
+                                download: false
                             }
                         }
                     },
@@ -80,19 +81,19 @@
                         categories: categories,
                         labels: {
                             style: {
-                                colors: '#000' // x축 레이블 검정색
+                                colors: '#000'
                             },
-                            rotate: -45,
+                            rotate: -45, // 데스크톱 기준 각도
                             showDuplicates: false,
                             hideOverlappingLabels: true,
                             trim: true
                         },
-                        tickAmount: 6 // (기본) 넓은 화면에서 라벨 수 제한
+                        tickAmount: 6
                     },
                     yaxis: {
                         labels: {
                             style: {
-                                colors: '#000' // y축 레이블 검정색
+                                colors: '#000'
                             },
                             formatter: function (val) {
                                 return val.toFixed(0) + '%';
@@ -105,11 +106,11 @@
                         shared: true,
                         followCursor: true,
                         intersect: false,
-                        theme: 'light', // 툴팁 배경 밝은 톤
+                        theme: 'light',
                         style: {
                             fontSize: '16px',
                             fontFamily: 'Arial, sans-serif',
-                            colors: ['#000'] // 툴팁 텍스트 검정색
+                            colors: ['#000']
                         },
                         y: {
                             formatter: function (val) {
@@ -130,35 +131,41 @@
                         opacity: 1
                     },
                     legend: {
-                        position: 'right',  // (기본) PC에서는 오른쪽
-                        offsetY: 40,
+                        position: 'right', // 데스크톱 기본: 오른쪽
+                        offsetY: 10,
                         labels: {
-                            colors: '#000' // 범례 텍스트 검정색
+                            colors: '#000'
                         }
                     },
                     dataLabels: {
                         enabled: false
                     },
-                    // 반응형 옵션
+                    // 화면 너비별 반응형 옵션
                     responsive: [
                         {
-                            // 1200px 이하
-                            breakpoint: 1200,
-                            options: {
-                                xaxis: {
-                                    tickAmount: 5
-                                }
-                            }
-                        },
-                        {
-                            // 768px 이하 (태블릿 ~ 모바일)
+                            // 768px 이하 (태블릿/모바일)
                             breakpoint: 768,
                             options: {
+                                chart: {
+                                    /* 모바일에서 vh로 잡으면 기기에 따라 잘리는 경우가 있으므로
+                                       살짝 줄여봄. 필요시 수치 조절 */
+                                    height: 'calc(100vh - 20px)'
+                                },
                                 xaxis: {
-                                    tickAmount: 4
+                                    tickAmount: 4,
+                                    labels: {
+                                        rotate: 0 // 모바일에서는 라벨을 수평으로
+                                    }
                                 },
                                 legend: {
-                                    position: 'bottom' // 레전드를 아래로
+                                    position: 'bottom', // 아래로 내림
+                                    offsetY: 0         // 너무 띄우지 않도록 0으로
+                                },
+                                grid: {
+                                    // 범례가 아래 뜰 때 너무 밀리지 않도록
+                                    padding: {
+                                        bottom: 20
+                                    }
                                 }
                             }
                         },
@@ -166,11 +173,23 @@
                             // 480px 이하 (모바일)
                             breakpoint: 480,
                             options: {
+                                chart: {
+                                    height: 'calc(100vh - 20px)'
+                                },
                                 xaxis: {
-                                    tickAmount: 2
+                                    tickAmount: 2,
+                                    labels: {
+                                        rotate: 0
+                                    }
                                 },
                                 legend: {
-                                    position: 'bottom' // 레전드를 아래로
+                                    position: 'bottom',
+                                    offsetY: 0
+                                },
+                                grid: {
+                                    padding: {
+                                        bottom: 20
+                                    }
                                 }
                             }
                         }
