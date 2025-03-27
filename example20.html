@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <!-- apexcharts -->
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
   <style>
@@ -98,7 +97,21 @@
                 colors: '#000000'
               },
               formatter: function(value) {
-                return value.toFixed(1); 
+                // 1,000(K), 1,000,000(M), 1,000,000,000(B) 단위로 축약
+                const absValue = Math.abs(value);
+                if (absValue >= 1.0e9) {
+                  // 1,000,000,000 이상이면 B
+                  return (value / 1.0e9).toFixed(2) + "B";
+                } else if (absValue >= 1.0e6) {
+                  // 1,000,000 이상이면 M
+                  return (value / 1.0e6).toFixed(2) + "M";
+                } else if (absValue >= 1.0e3) {
+                  // 1,000 이상이면 K
+                  return (value / 1.0e3).toFixed(2) + "K";
+                } else {
+                  // 1,000 미만이면 그대로 표시 (소수 첫째자리까지)
+                  return value.toFixed(1);
+                }
               }
             },
             axisBorder: {
