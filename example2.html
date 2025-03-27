@@ -10,43 +10,66 @@
   <div id="chart"></div>
 
   <script>
-    // 301.json에서 데이터 불러오기
     fetch('301.json')
-      .then(response => response.json())  // JSON 형태로 변환
+      .then(response => response.json())
       .then(jsonData => {
-        // ApexCharts에서 요구하는 형태 [x축(시간), y축(수치)]로 변환
-        const seriesData = jsonData.map(item => {
-          // x: 날짜/시간, y: 값
-          return [ item.time, item.supply ];
-        });
+        // category가 "Issued"인 데이터
+        const issuedData = jsonData
+          .filter(item => item.category === 'Issued')
+          .map(item => [ item.time, item.supply ]);
 
-        // ApexCharts 옵션 설정
+        // category가 "Forecasted"인 데이터
+        const forecastedData = jsonData
+          .filter(item => item.category === 'Forecasted')
+          .map(item => [ item.time, item.supply ]);
+
         const options = {
           chart: {
-            type: 'line',     // 라인 차트
-            height: 450       // 차트 높이
+            type: 'line',
+            height: 450,
+            toolbar: {
+              show: false
+            },
+            zoom: {
+              enabled: false
+            }
           },
           series: [
             {
-              name: 'Issued Supply',
-              data: seriesData
+              name: 'Issued',
+              data: issuedData
+            },
+            {
+              name: 'Forecasted',
+              data: forecastedData
             }
           ],
+          colors: ['#FF4560', '#008FFB'],
           xaxis: {
-            type: 'datetime'  // x축을 시간축으로 설정
+            type: 'datetime'
           },
           yaxis: {
-            title: {
-              text: 'Supply'
+            // 숫자가 커졌을 때 k, M, B 등으로 표시하도록 formatter 설정
+            labels: {
+              formatter: function (value) {
+                if (value >= 1.0e9) {
+                  // 10억 단위 (B)
+                  return (value / 1.0e9).toFixed(2) + 'B';
+                } else if (value >= 1.0e6) {
+                  // 100만 단위 (M)
+                  return (value / 1.0e6).toFixed(2) + 'M';
+                } else if (value >= 1.0e3) {
+                  // 1000 단위 (K)
+                  return (value / 1.0e3).toFixed(1) + 'K';
+                } else {
+                  // 1000 이하이면 그대로 표시
+                  return value.toFixed(2);
+                }
+              }
             }
-          },
-          title: {
-            text: 'Issued Supply Over Time',
-            align: 'center'
           }
         };
 
-        // 차트 생성 및 렌더링
         const chart = new ApexCharts(document.querySelector("#chart"), options);
         chart.render();
       })
