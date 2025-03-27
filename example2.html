@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bitcoin Forecasted Supply Chart</title>
+  <!-- ApexCharts 라이브러리 로드 -->
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <style>
+    body {
+      margin: 0; 
+      padding: 0; 
+      font-family: sans-serif;
+    }
+    #chart {
+      max-width: 900px;
+      margin: 40px auto;
+    }
+  </style>
+</head>
+<body>
+  <!-- 차트를 표시할 영역 -->
+  <div id="chart"></div>
+
+  <script>
+    // JSON 데이터를 불러와서 차트 시리즈용 배열을 만든 뒤, ApexCharts로 시각화합니다.
+    fetch('301.json')    // 로컬 또는 서버에 존재하는 비트코인 공급 데이터(JSON)
+      .then(response => response.json())
+      .then(data => {
+        // 이 예시에서는 BTC 총발행량을 21000000으로 고정
+        const TOTAL_SUPPLY = 21000000;
+
+        // 차트에 들어갈 두 가지 시리즈 데이터를 각각 담을 배열
+        const issuedSeries = [];
+        const forecastedSeries = [];
+
+        data.forEach(item => {
+          // item.time은 "YYYY-MM-DD HH:mm:ss" 형태 문자열
+          const time = new Date(item.time);
+          const issuedAmount = item.supply;
+
+          // 만약 카테고리가 'Issued'인 데이터만 필요한 경우라면 체크
+          if (item.category === 'Issued') {
+            issuedSeries.push({ x: time, y: issuedAmount });
+            // 예측량 = (총발행량 - 발행된 양)
+            forecastedSeries.push({ x: time, y: TOTAL_SUPPLY - issuedAmount });
+          }
+        });
+
+        // ApexCharts 설정
+        const options = {
+          chart: {
+            type: 'area',    // 영역 차트
+            stacked: true,   // 시리즈를 위로 쌓아서 표시
+            height: 400
+          },
+          series: [
+            {
+              name: 'Issued',
+              data: issuedSeries
+            },
+            {
+              name: 'Forecasted',
+              data: forecastedSeries
+            }
+          ],
+          xaxis: {
+            type: 'datetime',  // x축을 시간축으로 설정
+            labels: {
+              datetimeUTC: false
+            }
+          },
+          yaxis: {
+            labels: {
+              formatter: function (val) {
+                // 세 자리마다 콤마를 찍어 주는 식
+                return val.toLocaleString();
+              }
+            }
+          },
+          tooltip: {
+            x: {
+              format: 'yyyy-MM-dd' // 툴팁에 표시될 날짜 포맷
+            }
+          },
+          title: {
+            text: 'Bitcoin Forecasted Supply',
+            align: 'left'
+          }
+        };
+
+        // 차트 생성 후 렌더링
+        const chart = new ApexCharts(document.querySelector("#chart"), options);
+        chart.render();
+      })
+      .catch(error => {
+        console.error('데이터 로드 중 오류가 발생했습니다:', error);
+      });
+  </script>
+</body>
+</html>
