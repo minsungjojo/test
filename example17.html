@@ -78,15 +78,16 @@
                     xaxis: {
                         categories: categories,
                         labels: {
-                            rotate: 0,  // 라벨을 기울이지 않고 일자로 표시
+                            rotate: 0,                // 라벨 각도를 0도로(수평) 지정
+                            rotateAlways: false,      
+                            trim: false,              // 라벨을 생략(...)하지 않음
+                            hideOverlappingLabels: false, // 겹쳐도 라벨을 숨기지 않음
                             style: {
+                                fontSize: '12px',     // 필요에 따라 폰트 크기를 조정하세요
                                 colors: '#000000'
                             },
-                            showDuplicates: false,
-                            hideOverlappingLabels: true,
-                            trim: true,
-                        },
-                        // tickAmount를 지정하지 않으면 화면 크기에 따라 자동으로 라벨 개수를 조절
+                            showDuplicates: false
+                        }
                     },
                     yaxis: {
                         labels: {
