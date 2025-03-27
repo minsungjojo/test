@@ -3,10 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>스택형 막대 차트 (Datetime 축)</title>
+  <title>스택형 막대 차트 (Datetime 축, YYYY-MM-DD 표시)</title>
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
   <style>
-    /* 차트 컨테이너를 반응형으로 설정해야, 브라우저 크기 변화에 따라 x축 라벨도 자동 조정됨 */
     html, body {
       margin: 0; 
       padding: 0;
@@ -17,7 +16,7 @@
       overflow: hidden;
     }
     #chart {
-      width: 100%;  /* 부모 폭에 맞춰 가로 100% */
+      width: 100%;
       height: 100vh;
     }
   </style>
@@ -32,115 +31,97 @@
       return JSON.parse(decodedString);
     }
 
-    // Base64로 암호화된 JSON 데이터를 가져옵니다
-    fetch('17.json') // Base64로 암호화된 JSON 파일 경로
+    fetch('17.json')
       .then(response => response.text())
       .then(base64Data => {
         const rawData = decodeBase64(base64Data);
 
-        // 1) 날짜 목록 추출 & 정렬
+        // 날짜들 정렬
         const uniqueDates = [...new Set(rawData.map(item => item.date))].sort(
           (a, b) => new Date(a) - new Date(b)
         );
 
-        // 2) 코인(action) 목록
-        const actions = [
-          'bitcoin',
-          'ethereum',
-          'sui',
-          'solana',
-          'sei',
-          'bnb',
-          'cardano'
-        ];
+        // 코인 목록
+        const actions = ['bitcoin','ethereum','sui','solana','sei','bnb','cardano'];
 
-        // 3) 각 날짜별 합계를 미리 계산 (전체 건수)
-        //    예: totalsByDate["2023-01-01"] = 120
+        // 날짜별 총합
         const totalsByDate = {};
         uniqueDates.forEach(date => {
-          const items = rawData.filter(d => d.date === date);
-          const sum = items.reduce((acc, obj) => acc + obj.count, 0);
-          totalsByDate[date] = sum;
+          const sameDay = rawData.filter(d => d.date === date);
+          totalsByDate[date] = sameDay.reduce((acc, obj) => acc + obj.count, 0);
         });
 
-        // 4) series = actions.map(...) => [ { name, data: [ { x, y }, ... ] }, ...]
-        //    스택형 '100%' 막대차트이므로 y에는 "전체 대비 퍼센트" 값을 넣습니다.
-        const series = actions.map(actionName => {
-          // 4.1) 각 action에 대한 날짜별 (x, y) 배열 생성
+        // series 만들기 (스택형 100%라서 각 날짜에 대한 퍼센트 계산)
+        const series = actions.map(action => {
           const dataPoints = uniqueDates.map(date => {
-            // rawData 중에서 해당 날짜 & action에 해당하는 값 찾기
-            const found = rawData.find(
-              item => item.date === date && item.action === actionName
-            );
-            // 퍼센트 계산
+            const found = rawData.find(item => item.date === date && item.action === action);
             const total = totalsByDate[date] || 0;
             const count = found ? found.count : 0;
             const percentage = total > 0 ? (count / total) * 100 : 0;
 
+            // x: 날짜 문자열, y: 퍼센트 값
             return {
-              x: date,     // ApexCharts가 'YYYY-MM-DD' 문자열을 날짜로 인식 (type: 'datetime') 
+              x: date,
               y: percentage
             };
           });
-
-          return {
-            name: actionName,
-            data: dataPoints
-          };
+          return { name: action, data: dataPoints };
         });
 
-        // 5) 차트 옵션
         const options = {
           chart: {
             type: 'bar',
             height: '100%',
             width: '100%',
             stacked: true,
-            stackType: '100%',    // 각 x(날짜)에 대해 합계를 100%로 맞춤
+            stackType: '100%',
             background: '#ffffff', 
             toolbar: {
-              tools: {
-                download: false   // 다운로드 버튼 비활성화
-              }
+              tools: { download: false }
             }
           },
           series: series,
-
-          // xaxis를 날짜 축(datetime)으로 설정
+          // x축을 datetime으로 설정
           xaxis: {
             type: 'datetime',
-            // tickAmount 설정을 생략하면, ApexCharts가 화면 크기에 따라 라벨 간격을 자동 계산
-            // tickAmount: 6, // (원한다면 최대 표시 라벨 수를 제한 가능)
             labels: {
-              rotate: 0,               // 0도로 표시 (수평)
-              hideOverlappingLabels: true, // 겹치면 일부 라벨 숨김
-              trim: false,            // '...'으로 생략하지 않음
+              // 겹치면 일부 라벨 숨김
+              hideOverlappingLabels: true,
+              // '...'으로 생략하지 않음
+              trim: false,
               style: {
                 fontSize: '12px',
                 colors: '#000000'
+              },
+              // 날짜 형식을 YYYY-MM-DD로 지정
+              datetimeFormatter: {
+                year: 'yyyy',
+                month: 'yyyy-MM',
+                day: 'yyyy-MM-dd',
+                hour: 'yyyy-MM-dd HH:mm'
               }
             }
           },
           yaxis: {
             labels: {
-              formatter: val => val.toFixed(0) + '%',  // 퍼센트로 표시
+              formatter: val => val.toFixed(0) + '%',
               style: { colors: '#000000' }
             }
           },
           colors: [
-            '#FFD700',
-            '#87CEEB',
-            '#FF69B4',
-            '#32CD32',
-            '#FFA07A',
-            '#BA55D3',
-            '#20B2AA'
+            '#FFD700','#87CEEB','#FF69B4',
+            '#32CD32','#FFA07A','#BA55D3','#20B2AA'
           ],
+          // 툴팁에서도 x(날짜) 값 형식 지정
           tooltip: {
             enabled: true,
             shared: true,
             followCursor: true,
             intersect: false,
+            x: {
+              // 툴팁의 날짜 포맷
+              format: 'yyyy-MM-dd'
+            },
             y: {
               formatter: val => val.toFixed(2) + '%'
             },
@@ -149,15 +130,9 @@
               fontSize: '16px'
             },
             marker: {
-              // 시리즈별 색상과 동일하게
               fillColors: [
-                '#FFD700',
-                '#87CEEB',
-                '#FF69B4',
-                '#32CD32',
-                '#FFA07A',
-                '#BA55D3',
-                '#20B2AA'
+                '#FFD700','#87CEEB','#FF69B4',
+                '#32CD32','#FFA07A','#BA55D3','#20B2AA'
               ]
             }
           },
@@ -165,10 +140,8 @@
             opacity: 1
           },
           legend: {
-            position: 'bottom', // 범례를 아래로
-            labels: {
-              colors: '#000000'
-            }
+            position: 'bottom',
+            labels: { colors: '#000000' }
           },
           dataLabels: {
             enabled: false
@@ -180,11 +153,10 @@
           }
         };
 
-        // 6) 차트 생성 및 렌더링
         const chart = new ApexCharts(document.querySelector('#chart'), options);
         chart.render();
       })
-      .catch(error => console.error('데이터를 가져오는 중 오류가 발생했습니다:', error));
+      .catch(err => console.error('데이터를 가져오는 중 오류 발생:', err));
   </script>
 </body>
 </html>
