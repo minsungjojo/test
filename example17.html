@@ -39,9 +39,18 @@
                 const data = decodeBase64(base64Data);
 
                 // 날짜를 순서대로 정렬
-                const categories = [...new Set(data.map(item => item.date))].sort((a, b) => new Date(a) - new Date(b));
+                const categories = [...new Set(data.map(item => item.date))]
+                    .sort((a, b) => new Date(a) - new Date(b));
 
-                const actions = ['bitcoin', 'ethereum', 'sui', 'solana', 'sei', 'bnb', 'cardano']; // 주요 암호화폐 action 목록
+                const actions = [
+                    'bitcoin',
+                    'ethereum',
+                    'sui',
+                    'solana',
+                    'sei',
+                    'bnb',
+                    'cardano'
+                ]; // 주요 암호화폐 action 목록
 
                 // 각 날짜별로 데이터를 합산하여 퍼센트 계산
                 const series = actions.map(action => {
@@ -57,7 +66,15 @@
                 });
 
                 // 밝은 색상 설정
-                const colors = ['#FFD700', '#87CEEB', '#FF69B4', '#32CD32', '#FFA07A', '#BA55D3', '#20B2AA'];
+                const colors = [
+                    '#FFD700',
+                    '#87CEEB',
+                    '#FF69B4',
+                    '#32CD32',
+                    '#FFA07A',
+                    '#BA55D3',
+                    '#20B2AA'
+                ];
 
                 // ApexCharts 설정
                 const options = {
@@ -67,25 +84,24 @@
                         width: '100%',
                         stacked: true,
                         stackType: '100%',
-                        background: '#ffffff',  // 차트 배경 흰색
+                        background: '#ffffff', // 차트 배경 흰색
                         toolbar: {
                             tools: {
-                                download: false       // 다운로드 버튼 비활성화
+                                download: false // 다운로드 버튼 비활성화
                             }
                         }
                     },
                     series: series,
                     xaxis: {
                         categories: categories,
-                        // 화면 크기에 맞춰 자동, 하지만 갯수를 일정 수준 이하로 줄이려면 tickAmount를 지정합니다.
-                        tickAmount: 6, // 라벨 최대 6개까지만 표시 (원하는 개수로 조정 가능)
+                        tickAmount: 6,           // 기본적으로 라벨 최대 6개
                         labels: {
-                            rotate: 0,               // 라벨을 기울이지 않고 일자로 표시
-                            showDuplicates: false,   
+                            rotate: 0,            // 라벨을 기울이지 않고 일자로 표시
+                            showDuplicates: false,
                             hideOverlappingLabels: true, // 겹치면 자동으로 일부 라벨 숨김
-                            trim: false,             // 라벨 끝을 '...'로 자르지 않음
+                            trim: false,          // 라벨 끝을 '...'로 자르지 않음
                             style: {
-                                fontSize: '12px',    
+                                fontSize: '12px',
                                 colors: '#000000'
                             }
                         }
@@ -123,7 +139,7 @@
                         opacity: 1
                     },
                     legend: {
-                        position: 'bottom',  // 범례를 차트 하단에 배치
+                        position: 'bottom', // 범례를 차트 하단에 배치
                         offsetY: 0,
                         labels: {
                             colors: '#000000'
@@ -147,7 +163,19 @@
                                 show: true
                             }
                         }
-                    }
+                    },
+                    // 화면 크기에 따라 tickAmount를 변경
+                    // breakpoint: 480px 이하일 때 tickAmount: 2로 설정
+                    responsive: [
+                        {
+                            breakpoint: 480,
+                            options: {
+                                xaxis: {
+                                    tickAmount: 2 // 모바일 화면에서는 라벨 2개만 보여주기
+                                }
+                            }
+                        }
+                    ]
                 };
 
                 // 차트 생성 및 렌더링
