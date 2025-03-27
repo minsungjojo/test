@@ -51,6 +51,20 @@
                 y: dateWiseData[date]
             }));
 
+            // K, M, B 변환 함수 (필요하면 재사용 가능)
+            function formatKMB(num) {
+                const val = Number(num) || 0;
+                if (val >= 1.0e9) {         // 10억 이상 -> B
+                    return (val / 1.0e9).toFixed(2) + "B USD";
+                } else if (val >= 1.0e6) {  // 백만 이상 -> M
+                    return (val / 1.0e6).toFixed(2) + "M USD";
+                } else if (val >= 1.0e3) {  // 천 이상 -> K
+                    return (val / 1.0e3).toFixed(2) + "K USD";
+                } else {
+                    return val.toFixed(2) + " USD";
+                }
+            }
+
             var options = {
                 chart: {
                     type: 'bar',
@@ -101,21 +115,7 @@
                 yaxis: {
                     labels: {
                         formatter: function (val) {
-                            // K, M, B 포맷 처리
-                            const num = Number(val) || 0; 
-                            if (num >= 1.0e9) {
-                                // 10억 이상 -> B
-                                return (num / 1.0e9).toFixed(2) + "B USD";
-                            } else if (num >= 1.0e6) {
-                                // 백만 이상 -> M
-                                return (num / 1.0e6).toFixed(2) + "M USD";
-                            } else if (num >= 1.0e3) {
-                                // 천 이상 -> K
-                                return (num / 1.0e3).toFixed(2) + "K USD";
-                            } else {
-                                // 천 미만
-                                return num.toFixed(2) + " USD";
-                            }
+                            return formatKMB(val);
                         },
                         style: {
                             colors: '#000',
@@ -130,12 +130,20 @@
                 plotOptions: {
                     bar: {
                         dataLabels: {
-                            position: 'top'
+                            position: 'top' // 막대 위에 데이터표시
                         }
                     }
                 },
+                // 데이터 라벨 설정
                 dataLabels: {
-                    enabled: false
+                    enabled: true,
+                    formatter: function (val) {
+                        return formatKMB(val);
+                    },
+                    style: {
+                        colors: ['#000'], // 데이터 라벨(막대 위) 글자색: 검정
+                        fontSize: '14px'
+                    }
                 },
                 legend: {
                     show: false
@@ -143,6 +151,12 @@
                 tooltip: {
                     style: {
                         fontSize: '20px'
+                    },
+                    y: {
+                        // 툴팁에서도 K, M, B로 표시
+                        formatter: function (val) {
+                            return formatKMB(val);
+                        }
                     }
                 }
             };
