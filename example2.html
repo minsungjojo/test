@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Responsive BTC Comparison Chart</title>
+  <title>Issued vs Forecasted Supply</title>
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
   <style>
+    /* 전체 화면을 가득 채우고 스크롤을 숨기는 기본 설정 */
     html, body {
       margin: 0;
       padding: 0;
@@ -13,15 +14,18 @@
       height: 100%;
       overflow: hidden;
     }
+    /* 화면 전체를 flex로 세로 배치 */
     main {
       width: 100%;
       height: 100%;
       display: flex;
       flex-direction: column;
     }
+    /* 차트를 감싸는 컨테이너를 flex:1로 설정해 남은 공간 전부 차지 */
     .chart-container {
       flex: 1;
     }
+    /* 차트 영역을 가로·세로 100%로 설정 */
     #chart {
       width: 100%;
       height: 100%;
@@ -36,91 +40,64 @@
 </main>
 
 <script>
-  function transformDataToSeries(data) {
-    const exchangeMap = {};
-    data.forEach(item => {
-      const { exchange, day, value } = item;
-      if (!exchangeMap[exchange]) {
-        exchangeMap[exchange] = [];
-      }
-      exchangeMap[exchange].push({ x: day, y: value });
-    });
-    return Object.keys(exchangeMap).map(exchangeName => {
-      const sortedData = exchangeMap[exchangeName].sort((a, b) => new Date(a.x) - new Date(b.x));
-      return { name: exchangeName, data: sortedData };
-    });
-  }
-
-  fetch('300.json')
+  fetch('301.json')
     .then(response => response.json())
-    .then(rawData => {
-      const seriesData = transformDataToSeries(rawData);
+    .then(jsonData => {
+      const issuedData = jsonData
+        .filter(item => item.category === 'Issued')
+        .map(item => [ item.time, item.supply ]);
+
+      const forecastedData = jsonData
+        .filter(item => item.category === 'Forecasted')
+        .map(item => [ item.time, item.supply ]);
+
       const options = {
         chart: {
-          type: 'area',
-          width: '100%',
+          type: 'line',
           height: '100%',
-          zoom: { enabled: false },
-          stacked: true,
-          toolbar: { show: false }
-        },
-        legend: { position: 'top' },
-        dataLabels: { enabled: false },
-        stroke: {
-          curve: 'smooth',
-          width: 1
-        },
-        xaxis: {
-          type: 'datetime',
-          tickAmount: 10,
-          labels: {
-            format: 'yyyy-MM-dd'
+          toolbar: {
+            show: false
+          },
+          zoom: {
+            enabled: false
           }
+        },
+        series: [
+          {
+            name: 'Issued',
+            data: issuedData
+          },
+          {
+            name: 'Forecasted',
+            data: forecastedData
+          }
+        ],
+        colors: ['#FF4560', '#008FFB'],
+        xaxis: {
+          type: 'datetime'
         },
         yaxis: {
           labels: {
-            formatter: function (val) {
-              const absVal = Math.abs(val);
-              if (absVal >= 1.0e9) {
-                return (val / 1.0e9).toFixed(1) + 'B';
-              } else if (absVal >= 1.0e6) {
-                return (val / 1.0e6).toFixed(1) + 'M';
-              } else if (absVal >= 1.0e3) {
-                return (val / 1.0e3).toFixed(1) + 'K';
+            formatter: function (value) {
+              if (value >= 1.0e9) {
+                return (value / 1.0e9).toFixed(2) + 'B';
+              } else if (value >= 1.0e6) {
+                return (value / 1.0e6).toFixed(2) + 'M';
+              } else if (value >= 1.0e3) {
+                return (value / 1.0e3).toFixed(1) + 'K';
               } else {
-                return val.toFixed(0);
+                return value.toFixed(2);
               }
             }
           }
-        },
-        tooltip: {
-          shared: true,
-          x: {
-            format: 'yyyy-MM-dd'
-          },
-          y: {
-            formatter: function (val) {
-              return val.toLocaleString() + ' BTC';
-            }
-          }
-        },
-        responsive: [
-          {
-            breakpoint: 480,
-            options: {
-              legend: {
-                position: 'bottom'
-              }
-            }
-          }
-        ],
-        series: seriesData
+        }
       };
+
       const chart = new ApexCharts(document.querySelector("#chart"), options);
       chart.render();
     })
-    .catch(err => {
-      console.error('Error loading JSON:', err);
+    .catch(error => {
+      console.error("JSON 데이터를 불러오는 중 오류 발생:", error);
     });
 </script>
 </body>
