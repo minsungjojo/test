@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Issuer별 TVL 차트</title>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            background-color: #fff; /* 흰색 배경 */
+            color: #000; /* 검정 텍스트 */
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* 스크롤바 숨김(필요시 해제 가능) */
+        }
+        #tvlChart {
+            width: 100vw; /* 전체 화면 너비 */
+            height: 100vh; /* 전체 화면 높이 */
+        }
+    </style>
+</head>
+<body>
+    <div id="tvlChart"></div> <!-- ApexCharts가 그려질 div 요소 -->
+
+    <script>
+        // 숫자를 K, M, B로 줄여 표시하는 포매터 함수
+        function shortFormatter(value) {
+            const absValue = Math.abs(Number(value));
+            if (absValue >= 1.0e9) {
+                // 10억 이상
+                return (value / 1.0e9).toFixed(1) + 'B';
+            } else if (absValue >= 1.0e6) {
+                // 100만 이상
+                return (value / 1.0e6).toFixed(1) + 'M';
+            } else if (absValue >= 1.0e3) {
+                // 1,000 이상
+                return (value / 1.0e3).toFixed(1) + 'K';
+            }
+            return value;
+        }
+
+        // Base64 데이터 가져오기 함수
+        async function 가져오기() {
+            const 응답 = await fetch('7.json'); // 필요에 따라 '5.json' 등으로 변경
+            const base64Data = await 응답.text();
+            const jsonData = JSON.parse(atob(base64Data)); // Base64 디코딩 후 JSON 파싱
+            return jsonData;
+        }
+
+        // 차트 데이터 처리 및 렌더링
+        가져오기()
+            .then(data => {
+                const issuers = data.map(item => item.plain_issuer);
+                const tvlValues = data.map(item => parseFloat(item.tvl));
+
+                // ApexCharts 옵션 설정
+                const options = {
+                    series: [{
+                        name: 'TVL (비트코인 갯수)',
+                        data: tvlValues
+                    }],
+                    chart: {
+                        type: 'bar',
+                        height: '100%',
+                        width: '100%',
+                        background: '#fff', // 흰색 배경
+                        toolbar: {
+                            tools: {
+                                download: false // 다운로드 버튼 비활성화
+                            }
+                        }
+                    },
+                    plotOptions: {
+                        bar: {
+                            horizontal: false,
+                            columnWidth: '50%',
+                            endingShape: 'rounded'
+                        },
+                    },
+                    // 밝은 배경에서 잘 보이도록 파스텔 톤이나 진한 색상
+                    colors: ['#4e73df', '#1cc88a'],
+                    dataLabels: {
+                        enabled: false
+                    },
+                    stroke: {
+                        show: true,
+                        width: 2,
+                        // 흰색 배경에 잘 보이도록 진한 스트로크
+                        colors: ['#333']
+                    },
+                    xaxis: {
+                        categories: issuers,
+                        labels: {
+                            style: {
+                                colors: '#333', // x축 라벨 색상
+                                fontSize: '12px'
+                            }
+                        }
+                    },
+                    yaxis: {
+                        labels: {
+                            formatter: function (value) {
+                                // K, M, B 단위로 축약
+                                return shortFormatter(value);
+                            },
+                            style: {
+                                colors: '#333' // y축 라벨 색상
+                            }
+                        }
+                    },
+                    grid: {
+                        borderColor: '#ddd', // 밝은 배경과 어울리는 그리드 라인
+                        strokeDashArray: 4
+                    },
+                    fill: {
+                        opacity: 1
+                    },
+                    tooltip: {
+                        theme: 'light', // 밝은 배경용 툴팁
+                        style: {
+                            fontSize: '16px',
+                            padding: {
+                                top: 10,
+                                left: 15,
+                                right: 15,
+                                bottom: 10
+                            }
+                        },
+                        y: {
+                            // 툴팁에서도 K, M, B 표기
+                            formatter: function (value) {
+                                return shortFormatter(value) + ' BTC';
+                            }
+                        }
+                    }
+                };
+
+                // 차트 렌더링
+                const chart = new ApexCharts(document.querySelector("#tvlChart"), options);
+                chart.render();
+            })
+            .catch(error => console.error('데이터를 가져오는 중 오류 발생:', error));
+    </script>
+</body>
+</html>
