@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>비트코인 일별 가치</title>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background-color: white;
+            color: black;
+            overflow: hidden;
+        }
+        
+        #chart {
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <div id="chart"></div>
+
+    <script>
+        function base64Decode(base64String) {
+            try {
+                const decodedString = atob(base64String);
+                return JSON.parse(decodedString);
+            } catch (e) {
+                console.error('Error decoding Base64 string:', e.message);
+                console.error('Base64 String:', base64String); // 디버깅용 출력
+                return null;
+            }
+        }
+
+        async function fetchData() {
+            const response = await fetch('23.json');
+            const base64Data = await response.text();
+            const jsonData = base64Decode(base64Data);
+
+            if (!jsonData) {
+                throw new Error('Failed to decode Base64 data.');
+            }
+
+            return jsonData
+                .map(entry => ({
+                    x: new Date(entry.day),
+                    y: parseFloat(entry.value.toFixed(1))
+                }))
+                .sort((a, b) => a.x - b.x);
+        }
+
+        async function renderChart() {
+            const seriesData = await fetchData();
+
+            var options = {
+                chart: {
+                    type: 'line',
+                    height: '100%',
+                    width: '100%',
+                    background: '#ffffff',
+                    toolbar: {
+                        show: false
+                    },
+                    zoom: {
+                        enabled: false
+                    }
+                },
+                stroke: {
+                    width: 3,
+                    colors: ['#0066ff']
+                },
+                series: [{
+                    name: '비트코인 가치',
+                    data: seriesData
+                }],
+                xaxis: {
+                    type: 'datetime',
+                    labels: {
+                        style: {
+                            colors: '#000000'
+                        },
+                        format: 'yyyy-MM-dd'
+                    }
+                },
+                yaxis: {
+                    labels: {
+                        style: {
+                            colors: '#000000'
+                        },
+                        formatter: function (value) {
+                            // K, M, B 단위로 표시
+                            if (value >= 1_000_000_000) {
+                                return (value / 1_000_000_000).toFixed(1) + 'B';
+                            } else if (value >= 1_000_000) {
+                                return (value / 1_000_000).toFixed(1) + 'M';
+                            } else if (value >= 1_000) {
+                                return (value / 1_000).toFixed(1) + 'K';
+                            } else {
+                                return value.toFixed(1);
+                            }
+                        }
+                    }
+                },
+                tooltip: {
+                    theme: 'light',
+                    x: {
+                        format: 'yyyy-MM-dd'
+                    }
+                },
+                grid: {
+                    borderColor: '#cccccc'
+                },
+                dataLabels: {
+                    enabled: false
+                }
+            };
+
+            var chart = new ApexCharts(document.querySelector("#chart"), options);
+            chart.render();
+        }
+
+        renderChart();
+    </script>
+</body>
+</html>
