@@ -12,9 +12,9 @@
             padding: 0;
             height: 100%;
             background-color: #ffffff; /* 페이지 배경을 흰색으로 설정 */
-            color: #000000; /* 텍스트 색상은 검은색으로 설정 */
+            color: #000000;           /* 텍스트 색상은 검은색으로 설정 */
             font-family: Arial, sans-serif;
-            overflow: hidden; /* 스크롤 바 제거 */
+            overflow: hidden;         /* 스크롤 바 제거 */
         }
         #chart {
             width: 100vw;
@@ -67,10 +67,10 @@
                         width: '100%',
                         stacked: true,
                         stackType: '100%',
-                        background: '#ffffff', // 차트 배경 흰색
+                        background: '#ffffff',  // 차트 배경 흰색
                         toolbar: {
                             tools: {
-                                download: false // 다운로드 버튼 비활성화
+                                download: false       // 다운로드 버튼 비활성화
                             }
                         }
                     },
@@ -78,15 +78,14 @@
                     xaxis: {
                         categories: categories,
                         labels: {
-                            rotate: 0,                // 라벨 각도를 0도로(수평) 지정
-                            rotateAlways: false,      
-                            trim: false,              // 라벨을 생략(...)하지 않음
-                            hideOverlappingLabels: false, // 겹쳐도 라벨을 숨기지 않음
+                            rotate: 0,               // 라벨을 기울이지 않고 일자로 표시
+                            showDuplicates: false,   
+                            hideOverlappingLabels: true, // 겹치면 자동으로 일부 라벨 숨김
+                            trim: false,             // 라벨 끝을 '...'로 자르지 않음
                             style: {
-                                fontSize: '12px',     // 필요에 따라 폰트 크기를 조정하세요
+                                fontSize: '12px',    
                                 colors: '#000000'
-                            },
-                            showDuplicates: false
+                            }
                         }
                     },
                     yaxis: {
@@ -122,7 +121,7 @@
                         opacity: 1
                     },
                     legend: {
-                        position: 'bottom', // 범례를 차트 하단에 배치
+                        position: 'bottom',  // 범례를 차트 하단에 배치
                         offsetY: 0,
                         labels: {
                             colors: '#000000'
