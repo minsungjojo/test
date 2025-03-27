@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>차트 - 날짜 YYYY-MM 표기</title>
+    <!-- ApexCharts CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+</head>
+<body style="background-color: #FFF; color: #000; margin: 0;">
+    <div id="chart" style="width: 100vw; height: 100vh;"></div>
+
+    <script>
+        // 큰 숫자를 k, m, b로 축약하는 헬퍼 함수
+        function 축약표시(값) {
+            const absVal = Math.abs(값);
+            if (absVal >= 1.0e9) {
+                return (값 / 1.0e9).toFixed(2) + 'b';
+            } else if (absVal >= 1.0e6) {
+                return (값 / 1.0e6).toFixed(2) + 'm';
+            } else if (absVal >= 1.0e3) {
+                return (값 / 1.0e3).toFixed(2) + 'k';
+            } else {
+                return 값.toLocaleString();
+            }
+        }
+
+        async function 가져오기() {
+            const 응답 = await fetch('5.json'); // 5.json 파일에서 Base64 형태의 string을 가져옵니다.
+            const base64Data = await 응답.text(); // Base64 문자열로 가져오기
+            const jsonData = JSON.parse(atob(base64Data)); // Base64 문자열을 디코딩하여 JSON으로 변환
+            return jsonData;
+        }
+
+        function 중복제거(데이터) {
+            const 고유날짜 = {};
+            return 데이터.filter(항목 => {
+                const 날짜 = 항목.month.split(" ")[0];
+                if (!고유날짜[날짜]) {
+                    고유날짜[날짜] = true;
+                    return true;
+                }
+                return false;
+            });
+        }
+
+        function 날짜정렬(데이터) {
+            return 데이터.sort((a, b) => new Date(a.month) - new Date(b.month));
+        }
+
+        function 차트생성(정렬된데이터) {
+            // 날짜를 'YYYY-MM' 형태로 만드는 함수
+            function toYYYYMM(dateObj) {
+                const year = dateObj.getFullYear();
+                // 월이 0부터 시작하므로 +1, 10보다 작으면 앞에 0 붙이기
+                const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                return `${year}-${month}`;
+            }
+
+            // 월별 라벨 (ex: 2023-07)
+            var 월별 = 정렬된데이터.map(항목 => {
+                const d = new Date(항목.month);
+                return toYYYYMM(d);
+            });
+
+            var 볼륨달러 = 정렬된데이터.map(항목 => 항목.volume_dollar);
+
+            var 옵션 = {
+                chart: {
+                    type: 'line',
+                    height: '100%',
+                    width: '100%',
+                    background: '#FFF',  // 차트 배경색 흰색
+                    foreColor: '#000',   // 기본 폰트색 검정
+                    zoom: {
+                        enabled: false
+                    },
+                    toolbar: {
+                        show: false        // 모든 툴바 버튼 숨기기
+                    }
+                },
+                series: [{
+                    name: '볼륨 (달러)',
+                    data: 볼륨달러
+                }],
+                xaxis: {
+                    categories: 월별,
+                    labels: {
+                        style: {
+                            colors: '#000',
+                            fontSize: '14px'
+                        }
+                    }
+                },
+                yaxis: {
+                    labels: {
+                        formatter: function (값) {
+                            return '$' + 축약표시(값);
+                        },
+                        style: {
+                            colors: '#000',
+                            fontSize: '14px'
+                        }
+                    }
+                },
+                tooltip: {
+                    theme: 'light',
+                    y: {
+                        // 툴팁에서 축약형 쓰고 싶으면 아래처럼:
+                        formatter: function (값) {
+                            return '$' + 축약표시(값);
+                        }
+                        // 원본 전체 숫자로 보고 싶다면:
+                        //formatter: function (값) {
+                        //    return '$' + 값.toLocaleString();
+                        //}
+                    }
+                },
+                colors: ['#2E93fA'], // 라인 색상
+                grid: {
+                    borderColor: '#ccc'
+                },
+                stroke: {
+                    curve: 'straight'
+                },
+                dataLabels: {
+                    enabled: false
+                }
+            };
+
+            var 차트 = new ApexCharts(document.querySelector("#chart"), 옵션);
+            차트.render();
+        }
+
+        가져오기().then(데이터 => {
+            var 필터링된데이터 = 중복제거(데이터);
+            var 정렬된데이터 = 날짜정렬(필터링된데이터);
+            차트생성(정렬된데이터);
+        }).catch(error => {
+            console.error('데이터를 가져오는 중 오류 발생:', error);
+        });
+    </script>
+</body>
+</html>
