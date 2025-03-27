@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>스택형 막대 차트 (Datetime 축, YYYY-MM-DD 표시)</title>
+  <title>스택형 막대 차트 (Datetime 축, 100% 스택, 버튼 제거, 확대 금지)</title>
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
   <style>
     html, body {
@@ -74,18 +74,18 @@
             stacked: true,
             stackType: '100%',
             background: '#ffffff',
+            // ▼ 툴바와 확대 기능을 없애려면 아래를 추가/수정하세요
             toolbar: {
-              // 필요에 따라 다운로드 버튼 등을 숨길 수 있습니다
-              tools: {
-                download: false
-              }
+              show: false  // 모든 툴바 버튼 제거
+            },
+            zoom: {
+              enabled: false // 확대 비활성화
             }
           },
           series: series,
           xaxis: {
             type: 'datetime',  // 날짜/시간 축
             labels: {
-              // 라벨 회전 제거 (rotate: 0 또는 기본)
               style: {
                 fontSize: '12px',
                 colors: '#000000'
