@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>암호화폐 언급 성장률</title>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <style>
+        html, body {
+            background-color: #fff;
+            color: #000;
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        #chart {
+            height: 100vh;
+            width: 100vw;
+        }
+    </style>
+</head>
+<body>
+    <div id="chart"></div>
+
+    <script>
+        // Base64 데이터를 가져오는 함수
+        async function 가져오기() {
+            const 응답 = await fetch('18.json'); // Change to 5.json
+            const base64Data = await 응답.text(); // Base64 인코딩된 문자열을 가져옴
+            const jsonData = JSON.parse(atob(base64Data)); // Base64 문자열을 디코딩하여 JSON 데이터로 변환
+            return jsonData;
+        }
+
+        // 차트를 그리는 함수
+        async function renderChart() {
+            const data = await 가져오기();
+
+            const mentionGrowth = data.map(item => item.mention_growth * 100);
+            const symbols = data.map(item => item.symbol);
+
+            var options = {
+                series: [{
+                    name: '언급 성장률',
+                    data: mentionGrowth
+                }],
+                chart: {
+                    type: 'bar',
+                    height: '100%',
+                    width: '100%',
+                    background: '#fff',
+                    toolbar: {
+                        tools: {
+                            download: false
+                        }
+                    }
+                },
+                // 막대 색상
+                colors: ['#4CAF50'],
+                plotOptions: {
+                    bar: {
+                        horizontal: true,
+                        dataLabels: {
+                            position: 'center'
+                        }
+                    }
+                },
+                dataLabels: {
+                    enabled: true,
+                    formatter: function(value) {
+                        return value.toFixed(2) + "%";
+                    },
+                    style: {
+                        fontSize: '14px',
+                        colors: ['#000']
+                    }
+                },
+                xaxis: {
+                    categories: symbols,
+                    labels: {
+                        style: {
+                            colors: '#000'
+                        }
+                    },
+                    axisBorder: {
+                        color: '#ccc'
+                    },
+                    axisTicks: {
+                        color: '#ccc'
+                    }
+                },
+                yaxis: {
+                    labels: {
+                        style: {
+                            colors: '#000'
+                        }
+                    }
+                },
+                grid: {
+                    borderColor: '#ccc',
+                    strokeDashArray: 4
+                },
+                tooltip: {
+                    theme: 'light',
+                    style: {
+                        fontSize: '16px',
+                        fontFamily: 'Arial, sans-serif',
+                        color: '#000'
+                    },
+                    y: {
+                        formatter: function(value) {
+                            return value.toFixed(2) + "%";
+                        },
+                        title: {
+                            formatter: (seriesName) => seriesName,
+                            style: {
+                                color: '#4CAF50',
+                                fontWeight: 'bold',
+                                fontSize: '16px'
+                            }
+                        }
+                    },
+                    fillSeriesColor: false
+                },
+                legend: {
+                    labels: {
+                        colors: '#000'
+                    }
+                }
+            };
+
+            var chart = new ApexCharts(document.querySelector("#chart"), options);
+            chart.render();
+        }
+
+        // 차트 그리기 실행
+        renderChart();
+    </script>
+</body>
+</html>
