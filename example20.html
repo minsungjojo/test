@@ -1,179 +1,174 @@
 <!DOCTYPE html>
- <html lang="ko">
- <head>
-   <meta charset="UTF-8"/>
-   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-   <!-- apexcharts -->
-   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
- 
-   <style>
-       body, html {
-           margin: 0;
-           padding: 0;
-           width: 100%;
-           height: 100%;
-           background-color: #FFFFFF; /* 흰색 배경 */
-           color: #000000; /* 기본 글자색 검정 */
-           overflow: hidden; /* 스크롤바 제거 */
-       }
-       #chart {
-           width: 100%;
-           height: 100%;
-           background-color: #FFFFFF; /* 차트 컨테이너 흰색 */
-       }
-   </style>
- </head>
- <body>
-   <div id="chart"></div>
- 
-   <script>
-     async function 가져오기() {
-       const 응답 = await fetch('20.json'); 
-       const base64Data = await 응답.text(); 
-       const jsonData = JSON.parse(atob(base64Data)); 
-       return jsonData;
-     }
- 
-     가져오기()
-       .then(data => {
-         const inflow = data.map(item => item.inflow);
-         const netflow = data.map(item => item.netfolow);
-         const outflow = data.map(item => item.outflow);
-         const time = data.map(item => new Date(item.time).toISOString().split('T')[0]);
- 
-         var options = {
-           chart: {
-             type: 'line',
-             height: '100%',
-             width: '100%',
-             background: '#FFFFFF',
-             toolbar: {
-               show: false // 버튼 숨김
-             },
-             zoom: {
-               enabled: false // 줌 비활성화
-             }
-           },
-           series: [
-             {
-               name: 'Inflow',
-               data: inflow
-             },
-             {
-               name: 'Netflow',
-               data: netflow,
-               stroke: {
-                 width: 4
-               }
-             },
-             {
-               name: 'Outflow',
-               data: outflow
-             }
-           ],
-           colors: ['#1f77b4', '#ff7f0e', '#2ca02c'],
-           xaxis: {
-             categories: time,
-             labels: {
-               show: true,
-               rotate: -45,
-               style: {
-                 fontSize: '10px',
-                 colors: '#000000'
-               },
-               formatter: function(val, index) {
-                 return (index % 7 === 0) ? val : '';
-               }
-             },
-             axisBorder: {
-               color: '#999999'
-             },
-             axisTicks: {
-               color: '#999999'
-             }
-           },
-           yaxis: {
-             labels: {
-               style: {
-                 colors: '#000000'
-               },
-               formatter: function(value) {
-                 return value.toFixed(1); 
-                 // 1,000(K), 1,000,000(M), 1,000,000,000(B) 단위로 축약
-                 const absValue = Math.abs(value);
-                 if (absValue >= 1.0e9) {
-                   // 1,000,000,000 이상이면 B
-                   return (value / 1.0e9).toFixed(2) + "B";
-                 } else if (absValue >= 1.0e6) {
-                   // 1,000,000 이상이면 M
-                   return (value / 1.0e6).toFixed(2) + "M";
-                 } else if (absValue >= 1.0e3) {
-                   // 1,000 이상이면 K
-                   return (value / 1.0e3).toFixed(2) + "K";
-                 } else {
-                   // 1,000 미만이면 그대로 표시 (소수 첫째자리까지)
-                   return value.toFixed(1);
-                 }
-               }
-             },
-             axisBorder: {
-               color: '#999999'
-             },
-             axisTicks: {
-               color: '#999999'
-             }
-           },
-           stroke: {
-             curve: 'smooth',
-             width: [2, 4, 2]
-           },
-           markers: {
-             size: [0, 0, 0]
-           },
-           legend: {
-             labels: {
-               colors: '#000000'
-             }
-           },
-           tooltip: {
-             theme: 'light',
-             style: {
-               fontSize: '16px',
-               fontFamily: 'Arial, sans-serif',
-               color: '#000000'
-             },
-             marker: {
-               fillColors: ['#1f77b4', '#ff7f0e', '#2ca02c']
-             },
-             y: {
-               formatter: function(value) {
-                 return value ? value.toFixed(1).toLocaleString() : '';
-               },
-               title: {
-                 formatter: (seriesName) => seriesName,
-                 style: {
-                   color: '#666666'
-                 }
-               }
-             },
-             x: {
-               formatter: function(value) {
-                 return value;
-               },
-               style: {
-                 color: '#666666'
-               }
-             }
-           },
-           grid: {
-             borderColor: '#cccccc'
-           }
-         };
- 
-         var chart = new ApexCharts(document.querySelector("#chart"), options);
-         chart.render();
-       })
-       .catch(error => console.error('Error fetching data:', error));
-   </script>
- </body>
- </html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <!-- apexcharts -->
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+  <style>
+      body, html {
+          margin: 0;
+          padding: 0;
+          width: 100%;
+          height: 100%;
+          background-color: #FFFFFF; /* 흰색 배경 */
+          color: #000000; /* 기본 글자색 검정 */
+          overflow: hidden; /* 스크롤바 제거 */
+      }
+      #chart {
+          width: 100%;
+          height: 100%;
+          background-color: #FFFFFF; /* 차트 컨테이너 흰색 */
+      }
+  </style>
+</head>
+<body>
+  <div id="chart"></div>
+
+  <script>
+    async function 가져오기() {
+      const 응답 = await fetch('20.json'); 
+      const base64Data = await 응답.text(); 
+      const jsonData = JSON.parse(atob(base64Data)); 
+      return jsonData;
+    }
+
+    가져오기()
+      .then(data => {
+        const inflow = data.map(item => item.inflow);
+        const netflow = data.map(item => item.netfolow);
+        const outflow = data.map(item => item.outflow);
+        const time = data.map(item => new Date(item.time).toISOString().split('T')[0]);
+
+        var options = {
+          chart: {
+            type: 'line',
+            height: '100%',
+            width: '100%',
+            background: '#FFFFFF',
+            toolbar: {
+              show: false // 버튼 숨김
+            },
+            zoom: {
+              enabled: false // 줌 비활성화
+            }
+          },
+          series: [
+            {
+              name: 'Inflow',
+              data: inflow
+            },
+            {
+              name: 'Netflow',
+              data: netflow,
+              stroke: {
+                width: 4
+              }
+            },
+            {
+              name: 'Outflow',
+              data: outflow
+            }
+          ],
+          colors: ['#1f77b4', '#ff7f0e', '#2ca02c'],
+          xaxis: {
+            categories: time,
+            labels: {
+              show: true,
+              rotate: -45,
+              style: {
+                fontSize: '10px',
+                colors: '#000000'
+              },
+              formatter: function(val, index) {
+                return (index % 7 === 0) ? val : '';
+              }
+            },
+            axisBorder: {
+              color: '#999999'
+            },
+            axisTicks: {
+              color: '#999999'
+            }
+          },
+          yaxis: {
+            labels: {
+              style: {
+                colors: '#000000'
+              },
+              formatter: function(value) {
+                // K / M / B 단위 표기
+                const absValue = Math.abs(value);
+                if (absValue >= 1.0e9) {
+                  return (value / 1.0e9).toFixed(2) + "B";
+                } else if (absValue >= 1.0e6) {
+                  return (value / 1.0e6).toFixed(2) + "M";
+                } else if (absValue >= 1.0e3) {
+                  return (value / 1.0e3).toFixed(2) + "K";
+                } else {
+                  return value.toFixed(1);
+                }
+              }
+            },
+            axisBorder: {
+              color: '#999999'
+            },
+            axisTicks: {
+              color: '#999999'
+            }
+          },
+          stroke: {
+            curve: 'smooth',
+            width: [2, 4, 2]
+          },
+          markers: {
+            size: [0, 0, 0]
+          },
+          legend: {
+            labels: {
+              colors: '#000000'
+            }
+          },
+          tooltip: {
+            theme: 'light',
+            style: {
+              fontSize: '16px',
+              fontFamily: 'Arial, sans-serif',
+              color: '#000000'
+            },
+            marker: {
+              fillColors: ['#1f77b4', '#ff7f0e', '#2ca02c']
+            },
+            y: {
+              formatter: function(value) {
+                return value ? value.toFixed(1).toLocaleString() : '';
+              },
+              title: {
+                formatter: (seriesName) => seriesName,
+                style: {
+                  color: '#666666'
+                }
+              }
+            },
+            x: {
+              formatter: function(value) {
+                return value;
+              },
+              style: {
+                color: '#666666'
+              }
+            }
+          },
+          grid: {
+            borderColor: '#cccccc'
+          }
+        };
+
+        var chart = new ApexCharts(document.querySelector("#chart"), options);
+        chart.render();
+      })
+      .catch(error => console.error('Error fetching data:', error));
+  </script>
+</body>
+</html>
