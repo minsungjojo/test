@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>평균 난이도 변화</title>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #FFFFFF; /* 배경 흰색 */
+            color: #000000;           /* 기본 텍스트 색상 검정 */
+            overflow: hidden;         /* 스크롤 막기 */
+        }
+        #chart {
+            width: 100%;
+            height: 100vh; /* 브라우저 전체 높이 */
+        }
+    </style>
+</head>
+<body>
+    <div id="chart"></div>
+
+    <script>
+        // Base64-encoded JSON 데이터를 가져와 디코딩하는 함수
+        async function 가져오기() {
+            const 응답 = await fetch('35.json'); // 필요시 5.json으로 변경
+            const base64Data = await 응답.text();
+            const jsonData = JSON.parse(atob(base64Data));
+            
+            return jsonData.map(item => ({
+                x: new Date(item.date),
+                y: parseFloat(item.avgdifficulty.toFixed(1))
+            }));
+        }
+
+        // 대형 숫자를 K, M, B로 축약해주는 함수
+        function formatNumber(value) {
+            const absValue = Math.abs(value);
+            if (absValue >= 1.0e9) {           // 1,000,000,000
+                return (value / 1.0e9).toFixed(1) + 'B';
+            } else if (absValue >= 1.0e6) {    // 1,000,000
+                return (value / 1.0e6).toFixed(1) + 'M';
+            } else if (absValue >= 1.0e3) {    // 1,000
+                return (value / 1.0e3).toFixed(1) + 'K';
+            } else {
+                return value.toFixed(1);
+            }
+        }
+
+        // 차트 생성 함수
+        async function createChart() {
+            const seriesData = await 가져오기();
+
+            var options = {
+                chart: {
+                    type: 'line',
+                    height: '100%',
+                    width: '100%',
+                    background: '#FFFFFF', // 차트 배경 흰색
+                    toolbar: {
+                        show: false          // 툴바 버튼 모두 숨기기
+                    },
+                    zoom: {
+                        enabled: false       // 줌 비활성화
+                    }
+                },
+                series: [{
+                    name: '평균 난이도',
+                    data: seriesData
+                }],
+                xaxis: {
+                    type: 'datetime',
+                    labels: {
+                        format: 'yyyy-MM-dd',
+                        style: { colors: '#000000' } // x축 라벨 검정색
+                    }
+                },
+                yaxis: {
+                    labels: {
+                        formatter: function (value) {
+                            // 위에서 정의한 formatNumber 함수 활용
+                            return formatNumber(value);
+                        },
+                        style: { colors: '#000000' } // y축 라벨 검정색
+                    }
+                },
+                stroke: {
+                    colors: ['#000000'], // 라인 검정색
+                    width: 2
+                },
+                tooltip: {
+                    theme: 'light',
+                    style: {
+                        fontSize: '16px',
+                        color: '#000000',
+                        padding: '10px'
+                    },
+                    x: {
+                        format: 'yyyy-MM-dd'
+                    },
+                    y: {
+                        formatter: function (value) {
+                            // 툴팁에서는 소수점 한 자리 표기 (또는 formatNumber 등 필요에 따라 사용)
+                            return value.toFixed(1);
+                        }
+                    }
+                },
+                grid: {
+                    borderColor: '#CCCCCC', // 옅은 회색 그리드
+                    strokeDashArray: 3
+                },
+                markers: {
+                    size: 0 // 마커 비활성화
+                }
+            };
+
+            var chart = new ApexCharts(document.querySelector("#chart"), options);
+            chart.render();
+        }
+
+        createChart();
+    </script>
+</body>
+</html>
