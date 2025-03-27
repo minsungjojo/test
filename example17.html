@@ -1,188 +1,138 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>스택형 막대 차트 (화이트 배경)</title>
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-    <style>
-        /* Full-screen chart container */
-        html, body {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            background-color: #ffffff; /* 페이지 배경을 흰색으로 설정 */
-            color: #000000;           /* 텍스트 색상은 검은색으로 설정 */
-            font-family: Arial, sans-serif;
-            overflow: hidden;         /* 스크롤 바 제거 */
-        }
-        #chart {
-            width: 100vw;
-            height: 100vh;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>스택형 막대 차트 (화이트 배경)</title>
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <style>
+    html, body {
+      margin: 0; padding: 0;
+      height: 100%;
+      background-color: #ffffff;
+      color: #000000;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+    #chart {
+      /* 중요한 부분: 반응형으로 폭이 줄어들 수 있게 100% 설정 */
+      width: 100%;
+      height: 100vh;
+    }
+  </style>
 </head>
 <body>
-    <div id="chart"></div>
+  <div id="chart"></div>
 
-    <script>
-        // Base64 디코딩 함수
-        function decodeBase64(base64String) {
-            const decodedString = atob(base64String);
-            return JSON.parse(decodedString);
-        }
+  <script>
+    function decodeBase64(base64String) {
+      const decodedString = atob(base64String);
+      return JSON.parse(decodedString);
+    }
 
-        // Base64로 암호화된 JSON 데이터를 가져옵니다
-        fetch('17.json') // Base64로 암호화된 JSON 파일 경로
-            .then(response => response.text())
-            .then(base64Data => {
-                const data = decodeBase64(base64Data);
+    fetch('17.json')
+      .then(response => response.text())
+      .then(base64Data => {
+        const data = decodeBase64(base64Data);
 
-                // 날짜를 순서대로 정렬
-                const categories = [...new Set(data.map(item => item.date))]
-                    .sort((a, b) => new Date(a) - new Date(b));
+        const allDates = [...new Set(data.map(item => item.date))]
+          .sort((a, b) => new Date(a) - new Date(b));
 
-                const actions = [
-                    'bitcoin',
-                    'ethereum',
-                    'sui',
-                    'solana',
-                    'sei',
-                    'bnb',
-                    'cardano'
-                ]; // 주요 암호화폐 action 목록
+        const actions = [
+          'bitcoin', 'ethereum', 'sui', 'solana',
+          'sei', 'bnb', 'cardano'
+        ];
 
-                // 각 날짜별로 데이터를 합산하여 퍼센트 계산
-                const series = actions.map(action => {
-                    return {
-                        name: action,
-                        data: categories.map(date => {
-                            const entriesForDate = data.filter(item => item.date === date);
-                            const totalForDate = entriesForDate.reduce((sum, item) => sum + item.count, 0);
-                            const entry = entriesForDate.find(item => item.action === action);
-                            return entry ? (entry.count / totalForDate) * 100 : 0; // 퍼센트 계산
-                        })
-                    };
-                });
-
-                // 밝은 색상 설정
-                const colors = [
-                    '#FFD700',
-                    '#87CEEB',
-                    '#FF69B4',
-                    '#32CD32',
-                    '#FFA07A',
-                    '#BA55D3',
-                    '#20B2AA'
-                ];
-
-                // ApexCharts 설정
-                const options = {
-                    chart: {
-                        type: 'bar',
-                        height: '100%',
-                        width: '100%',
-                        stacked: true,
-                        stackType: '100%',
-                        background: '#ffffff', // 차트 배경 흰색
-                        toolbar: {
-                            tools: {
-                                download: false // 다운로드 버튼 비활성화
-                            }
-                        }
-                    },
-                    series: series,
-                    xaxis: {
-                        categories: categories,
-                        tickAmount: 6,           // 기본적으로 라벨 최대 6개
-                        labels: {
-                            rotate: 0,            // 라벨을 기울이지 않고 일자로 표시
-                            showDuplicates: false,
-                            hideOverlappingLabels: true, // 겹치면 자동으로 일부 라벨 숨김
-                            trim: false,          // 라벨 끝을 '...'로 자르지 않음
-                            style: {
-                                fontSize: '12px',
-                                colors: '#000000'
-                            }
-                        }
-                    },
-                    yaxis: {
-                        labels: {
-                            formatter: function (val) {
-                                return val.toFixed(0) + '%';
-                            },
-                            style: {
-                                colors: '#000000'
-                            }
-                        }
-                    },
-                    colors: colors,
-                    tooltip: {
-                        enabled: true,
-                        shared: true,
-                        followCursor: true,
-                        intersect: false,
-                        y: {
-                            formatter: function (val) {
-                                return val.toFixed(2) + "%";
-                            }
-                        },
-                        theme: 'light',
-                        style: {
-                            fontSize: '16px'
-                        },
-                        marker: {
-                            fillColors: colors
-                        }
-                    },
-                    fill: {
-                        opacity: 1
-                    },
-                    legend: {
-                        position: 'bottom', // 범례를 차트 하단에 배치
-                        offsetY: 0,
-                        labels: {
-                            colors: '#000000'
-                        },
-                        markers: {
-                            fillColors: colors
-                        }
-                    },
-                    dataLabels: {
-                        enabled: false
-                    },
-                    grid: {
-                        borderColor: '#cccccc',
-                        xaxis: {
-                            lines: {
-                                show: true
-                            }
-                        },
-                        yaxis: {
-                            lines: {
-                                show: true
-                            }
-                        }
-                    },
-                    // 화면 크기에 따라 tickAmount를 변경
-                    // breakpoint: 480px 이하일 때 tickAmount: 2로 설정
-                    responsive: [
-                        {
-                            breakpoint: 480,
-                            options: {
-                                xaxis: {
-                                    tickAmount: 2 // 모바일 화면에서는 라벨 2개만 보여주기
-                                }
-                            }
-                        }
-                    ]
-                };
-
-                // 차트 생성 및 렌더링
-                const chart = new ApexCharts(document.querySelector("#chart"), options);
-                chart.render();
+        const series = actions.map(action => {
+          return {
+            name: action,
+            data: allDates.map(date => {
+              const entries = data.filter(item => item.date === date);
+              const total = entries.reduce((sum, item) => sum + item.count, 0);
+              const entry = entries.find(item => item.action === action);
+              return entry ? (entry.count / total) * 100 : 0;
             })
-            .catch(error => console.error('데이터를 가져오는 중 오류가 발생했습니다:', error));
-    </script>
+          };
+        });
+
+        // 차트 기본 옵션
+        const options = {
+          chart: {
+            type: 'bar',
+            height: '100%',
+            width: '100%',
+            stacked: true,
+            stackType: '100%',
+            background: '#ffffff',
+            toolbar: { tools: { download: false } }
+          },
+          series: series,
+          xaxis: {
+            categories: allDates,  // 처음에는 full categories
+            tickAmount: 6,         // 데스크톱 기본 6개
+            labels: {
+              rotate: 0,
+              showDuplicates: false,
+              hideOverlappingLabels: true,
+              trim: false,
+              style: { fontSize: '12px', colors: '#000000' }
+            }
+          },
+          yaxis: {
+            labels: {
+              formatter: val => val.toFixed(0) + '%',
+              style: { colors: '#000000' }
+            }
+          },
+          colors: [
+            '#FFD700', '#87CEEB', '#FF69B4',
+            '#32CD32', '#FFA07A', '#BA55D3', '#20B2AA'
+          ],
+          tooltip: {
+            enabled: true,
+            shared: true,
+            followCursor: true,
+            intersect: false,
+            y: {
+              formatter: val => val.toFixed(2) + '%'
+            },
+            theme: 'light',
+            style: { fontSize: '16px' }
+          },
+          fill: { opacity: 1 },
+          legend: {
+            position: 'bottom',
+            offsetY: 0,
+            labels: { colors: '#000000' }
+          },
+          dataLabels: { enabled: false },
+          grid: {
+            borderColor: '#cccccc',
+            xaxis: { lines: { show: true } },
+            yaxis: { lines: { show: true } }
+          },
+          // 반응형 설정
+          responsive: [
+            {
+              breakpoint: 480,
+              options: {
+                xaxis: {
+                  // categories 배열을 2개만 남긴 배열로 교체
+                  categories: allDates.slice(0, 2),
+                  tickAmount: 2,
+                  labels: {
+                    hideOverlappingLabels: false, // 2개면 겹칠 일이 거의 없으니 false
+                  }
+                }
+              }
+            }
+          ]
+        };
+
+        const chart = new ApexCharts(document.querySelector('#chart'), options);
+        chart.render();
+      })
+      .catch(error => console.error('오류 발생:', error));
+  </script>
 </body>
 </html>
