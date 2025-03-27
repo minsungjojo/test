@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>스택형 막대 차트 (Datetime 축, YYYY-MM-DD 표시)</title>
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <style>
+    html, body {
+      margin: 0; 
+      padding: 0;
+      height: 100%;
+      background-color: #ffffff;
+      color: #000000;
+      font-family: Arial, sans-serif;
+      overflow: hidden;
+    }
+    #chart {
+      width: 100%;
+      height: 100vh;
+    }
+  </style>
+</head>
+<body>
+  <div id="chart"></div>
+
+  <script>
+    // Base64 디코딩 함수
+    function decodeBase64(base64String) {
+      const decodedString = atob(base64String);
+      return JSON.parse(decodedString);
+    }
+
+    // 데이터 가져오기 (19.json 예시)
+    fetch('19.json')
+      .then(response => response.text())
+      .then(base64Data => {
+        const rawData = decodeBase64(base64Data);
+
+        // 날짜(문자열) 정렬
+        const uniqueDates = [...new Set(rawData.map(item => item.date))].sort(
+          (a, b) => new Date(a) - new Date(b)
+        );
+
+        // 액션(코인/체인 등) 목록
+        const actions = ['polygon', 'optimism', 'linea', 'starknet', 'mantle', 'blast', 'zksync'];
+
+        // 날짜별 총합 계산
+        const totalsByDate = {};
+        uniqueDates.forEach(date => {
+          const sameDay = rawData.filter(d => d.date === date);
+          totalsByDate[date] = sameDay.reduce((acc, obj) => acc + obj.count, 0);
+        });
+
+        // 시리즈 생성 (스택형 100% → 날짜별 count 비율)
+        const series = actions.map(action => {
+          const dataPoints = uniqueDates.map(date => {
+            const found = rawData.find(item => item.date === date && item.action === action);
+            const total = totalsByDate[date] || 0;
+            const count = found ? found.count : 0;
+            const percentage = total > 0 ? (count / total) * 100 : 0;
+
+            // x: 날짜, y: 퍼센트
+            return { x: date, y: percentage };
+          });
+          return { name: action, data: dataPoints };
+        });
+
+        const options = {
+          chart: {
+            type: 'bar',
+            height: '100%',
+            width: '100%',
+            stacked: true,
+            stackType: '100%',
+            background: '#ffffff',
+            toolbar: {
+              // 필요에 따라 다운로드 버튼 등을 숨길 수 있습니다
+              tools: {
+                download: false
+              }
+            }
+          },
+          series: series,
+          xaxis: {
+            type: 'datetime',  // 날짜/시간 축
+            labels: {
+              // 라벨 회전 제거 (rotate: 0 또는 기본)
+              style: {
+                fontSize: '12px',
+                colors: '#000000'
+              },
+              datetimeFormatter: {
+                year: 'yyyy',
+                month: 'yyyy-MM',
+                day: 'yyyy-MM-dd',
+                hour: 'yyyy-MM-dd HH:mm'
+              }
+            }
+          },
+          yaxis: {
+            labels: {
+              formatter: val => val.toFixed(0) + '%',
+              style: { colors: '#000000' }
+            }
+          },
+          colors: [
+            '#FFD700', '#87CEEB', '#FF69B4',
+            '#32CD32', '#FFA07A', '#BA55D3', '#20B2AA'
+          ],
+          tooltip: {
+            enabled: true,
+            shared: true,
+            followCursor: true,
+            intersect: false,
+            x: {
+              format: 'yyyy-MM-dd' // 툴팁에서 날짜 포맷
+            },
+            y: {
+              formatter: val => val.toFixed(2) + '%'
+            },
+            theme: 'light',
+            style: {
+              fontSize: '16px'
+            },
+            marker: {
+              fillColors: [
+                '#FFD700','#87CEEB','#FF69B4',
+                '#32CD32','#FFA07A','#BA55D3','#20B2AA'
+              ]
+            }
+          },
+          fill: {
+            opacity: 1
+          },
+          legend: {
+            position: 'bottom',   // 범례를 하단에 배치
+            labels: { colors: '#000000' }
+          },
+          dataLabels: {
+            enabled: false
+          },
+          grid: {
+            borderColor: '#cccccc',
+            xaxis: { lines: { show: true } },
+            yaxis: { lines: { show: true } }
+          }
+        };
+
+        const chart = new ApexCharts(document.querySelector('#chart'), options);
+        chart.render();
+      })
+      .catch(err => console.error('데이터를 가져오는 중 오류 발생:', err));
+  </script>
+</body>
+</html>
