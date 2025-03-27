@@ -4,11 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>스택형 막대 차트</title>
-  
+
   <!-- ApexCharts 라이브러리 -->
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-  
-  <!-- 외부 CSS 파일 연결 (파일명과 경로를 환경에 맞게 수정하세요) -->
+
+  <!-- 외부 CSS 파일 연결 (환경에 맞춰 경로 수정) -->
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -74,12 +74,11 @@
               style: {
                 colors: "#000",
               },
-              rotate: 0,       // 라벨 수평
+              rotate: 0,       
               showDuplicates: false,
               hideOverlappingLabels: true,
-              trim: false,     // 줄임표(...) 방지
-              maxHeight: 100,  // 라벨 최대 높이
-              // maxWidth: 100  // 필요하면 가로 폭도 설정
+              trim: false,     
+              maxHeight: 100,  
             },
             tickAmount: 6,
           },
@@ -124,8 +123,10 @@
             opacity: 1,
           },
           legend: {
+            /* 레전드를 차트 하단 중앙에 고정 */
             position: "bottom",
-            offsetY: 0,          // 레전드를 x축과 가까이
+            horizontalAlign: "center",
+            offsetY: 0,  
             labels: {
               colors: "#000",
             },
