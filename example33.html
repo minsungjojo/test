@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>일일 활성 주소 수</title>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <style>
+        /* 페이지 전체를 흰 배경, 검정 텍스트로 설정 */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white; /* 페이지 배경 흰색 */
+            color: black; /* 기본 텍스트 컬러 검정 */
+            overflow: hidden; /* 스크롤바 숨김 */
+        }
+
+        /* 차트 영역 */
+        #chart {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="chart"></div>
+
+    <script>
+        // Base64 데이터를 가져와 디코딩하여 JSON 데이터를 반환하는 함수
+        async function 가져오기() {
+            const 응답 = await fetch('33.json'); // 예시로 33.json 사용
+            const base64Data = await 응답.text();
+            const jsonData = JSON.parse(atob(base64Data));
+            return jsonData.map(item => {
+                return { x: item.Date, y: item.Total_Active_Addresses };
+            });
+        }
+
+        // ApexCharts 옵션 설정
+        async function createChart() {
+            const seriesData = await 가져오기();
+
+            var options = {
+                chart: {
+                    type: 'line',
+                    width: '100%',
+                    height: '100%',
+                    background: '#FFFFFF', // 차트 배경 흰색
+                    toolbar: { show: false }, // 모든 버튼 숨김
+                    zoom: { enabled: false }   // 줌 비활성화
+                },
+                series: [{
+                    name: '일일 활성 주소 수',
+                    data: seriesData
+                }],
+                xaxis: {
+                    type: 'datetime',
+                    labels: {
+                        style: { colors: '#000000' } // X축 라벨 색상 검정
+                    }
+                },
+                yaxis: {
+                    labels: {
+                        style: { colors: '#000000' },
+                        formatter: function (val) {
+                            if (val >= 1000000000) {
+                                // 십억 단위 이상 -> B
+                                return (val / 1000000000).toFixed(2) + 'B';
+                            } else if (val >= 1000000) {
+                                // 백만 단위 이상 -> M
+                                return (val / 1000000).toFixed(2) + 'M';
+                            } else if (val >= 1000) {
+                                // 천 단위 이상 -> K
+                                return (val / 1000).toFixed(2) + 'K';
+                            } else {
+                                // 그 외에는 그대로 표시
+                                return val;
+                            }
+                        }
+                    }
+                },
+                stroke: {
+                    colors: ['#000000'], // 라인 색상 검정
+                    width: 2
+                },
+                tooltip: {
+                    x: {
+                        format: 'yyyy-MM-dd'
+                    },
+                    theme: 'light' // 툴팁 테마를 라이트로
+                },
+                grid: {
+                    borderColor: '#999999' // 그리드 선 색상
+                },
+                markers: {
+                    size: 0 // 라인 위의 마커 제거
+                }
+            };
+
+            var chart = new ApexCharts(document.querySelector("#chart"), options);
+            chart.render();
+        }
+
+        // 차트 생성
+        createChart();
+    </script>
+</body>
+</html>
