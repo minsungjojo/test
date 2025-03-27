@@ -1,105 +1,156 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Issued vs Forecasted Supply</title>
-  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-    }
-    main {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-    }
-    .chart-container {
-      flex: 1;
-    }
-    #chart {
-      width: 100%;
-      height: 100%;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>비트코인 차트</title>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <style>
+        /* 전체 화면에 차트를 꽉 채우고, 스크롤바를 숨깁니다 */
+        body, html {
+            margin: 0;
+            padding: 0;
+            background-color: white; /* 배경색을 흰색으로 변경 */
+            color: black; /* 전체 텍스트 색상 검은색으로 변경 */
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        #chart {
+            height: 100%;
+            width: 100%;
+        }
+
+        .apexcharts-tooltip {
+            font-size: 22px; /* 툴팁 폰트 크기 */
+        }
+    </style>
 </head>
 <body>
-<main>
-  <div class="chart-container">
     <div id="chart"></div>
-  </div>
-</main>
 
-<script>
-  fetch('301.json')
-    .then(response => response.json())
-    .then(jsonData => {
-      const issuedData = jsonData
-        .filter(item => item.category === 'Issued')
-        .map(item => [ item.time, item.supply ]);
+    <script>
+        // 2.json 파일(내부에는 Base64 인코딩된 JSON 데이터)에서 데이터를 불러오는 함수
+        async function fetchData() {
+            const response = await fetch('2.json'); // 2.json 파일을 동일 위치에 두고 사용
+            const encodedData = await response.text(); // Base64로 인코딩된 텍스트를 가져옴
 
-      const forecastedData = jsonData
-        .filter(item => item.category === 'Forecasted')
-        .map(item => [ item.time, item.supply ]);
+            // Base64 디코딩 -> JSON 파싱
+            const decodedData = atob(encodedData);
+            const data = JSON.parse(decodedData);
 
-      const options = {
-        chart: {
-          type: 'line',
-          height: '100%',
-          toolbar: {
-            show: false
-          },
-          zoom: {
-            enabled: false
-          }
-        },
-        series: [
-          {
-            name: 'Issued',
-            data: issuedData
-          },
-          {
-            name: 'Forecasted',
-            data: forecastedData
-          }
-        ],
-        colors: ['#FF4560', '#008FFB'],
-        xaxis: {
-          type: 'datetime'
-        },
-        yaxis: {
-          labels: {
-            formatter: function (value) {
-              if (value >= 1.0e9) {
-                return (value / 1.0e9).toFixed(2) + 'B';
-              } else if (value >= 1.0e6) {
-                return (value / 1.0e6).toFixed(2) + 'M';
-              } else if (value >= 1.0e3) {
-                return (value / 1.0e3).toFixed(1) + 'K';
-              } else {
-                return value.toFixed(2);
-              }
-            }
-          }
-        },
-        tooltip: {
-          x: {
-            format: 'yyyy-MM-dd'
-          }
+            // 데이터를 날짜 순으로 정렬
+            data.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            // btc_usd와 global_liquidity_index 데이터를 차트 형식에 맞게 변환
+            const btcData = data.map(item => ({
+                x: new Date(item.date),
+                y: Math.round(item.btc_usd) // BTC/USD 가격 반올림
+            }));
+
+            const liquidityData = data.map(item => ({
+                x: new Date(item.date),
+                y: Math.round(item.global_liquidity_index) // 글로벌 유동성 지수 반올림
+            }));
+
+            // ApexCharts 설정
+            var options = {
+                chart: {
+                    type: 'line',
+                    height: '100%',
+                    width: '100%',
+                    background: '#FFF',
+                    // 확대 기능 비활성화
+                    zoom: {
+                        enabled: false
+                    },
+                    // 모든 버튼(툴바) 숨기기
+                    toolbar: {
+                        show: false
+                    }
+                },
+                stroke: {
+                    width: 2,
+                    colors: ['#FF5733', '#1E90FF'] // 선 색상
+                },
+                series: [
+                    {
+                        name: 'BTC/USD 가격',
+                        data: btcData,
+                        color: '#FF5733'
+                    },
+                    {
+                        name: '글로벌 유동성 지수',
+                        data: liquidityData,
+                        color: '#1E90FF'
+                    }
+                ],
+                xaxis: {
+                    type: 'datetime',
+                    labels: {
+                        style: {
+                            colors: '#000',
+                            fontSize: '16px'
+                        }
+                    }
+                },
+                yaxis: [
+                    {
+                        labels: {
+                            style: {
+                                colors: '#000',
+                                fontSize: '16px'
+                            },
+                            formatter: function (value) {
+                                return Math.round(value);
+                            }
+                        }
+                    },
+                    {
+                        opposite: true,
+                        labels: {
+                            style: {
+                                colors: '#000',
+                                fontSize: '16px'
+                            },
+                            formatter: function (value) {
+                                return Math.round(value);
+                            }
+                        }
+                    }
+                ],
+                tooltip: {
+                    theme: 'light', // 툴팁을 밝은 테마로
+                    x: {
+                        formatter: function (val) {
+                            // 날짜를 yyyy-MM-dd 형식으로 표시
+                            let date = new Date(val);
+                            let year = date.getFullYear();
+                            let month = ('0' + (date.getMonth() + 1)).slice(-2);
+                            let day = ('0' + date.getDate()).slice(-2);
+                            return `${year}-${month}-${day}`;
+                        }
+                    }
+                },
+                grid: {
+                    borderColor: '#ccc'
+                },
+                legend: {
+                    labels: {
+                        colors: ['#000'],
+                        fontSize: '16px'
+                    }
+                }
+            };
+
+            // 차트 렌더링
+            var chart = new ApexCharts(document.querySelector("#chart"), options);
+            chart.render();
         }
-      };
 
-      const chart = new ApexCharts(document.querySelector("#chart"), options);
-      chart.render();
-    })
-    .catch(error => {
-      console.error("JSON 데이터를 불러오는 중 오류 발생:", error);
-    });
-</script>
+        // 페이지 로드 시 데이터를 가져와 차트를 생성
+        fetchData();
+    </script>
 </body>
 </html>
