@@ -7,7 +7,6 @@
     <!-- ApexCharts CDN -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
-      /* 아래와 같이 html, body, main, .chart-container, #chart에 대한 스타일을 적용합니다. */
       html, body {
         margin: 0;
         padding: 0;
@@ -36,7 +35,6 @@
 </head>
 <body>
     <main>
-      <!-- 차트 영역을 감싸는 .chart-container -->
       <div class="chart-container">
         <div id="chart"></div>
       </div>
@@ -47,24 +45,28 @@
         function 축약표시(값) {
             const absVal = Math.abs(값);
             if (absVal >= 1.0e9) {
-                // 10억 이상 -> b
                 return (값 / 1.0e9).toFixed(2) + 'b';
             } else if (absVal >= 1.0e6) {
-                // 100만 이상 -> m
                 return (값 / 1.0e6).toFixed(2) + 'm';
             } else if (absVal >= 1.0e3) {
-                // 1000 이상 -> k
                 return (값 / 1.0e3).toFixed(2) + 'k';
             } else {
-                // 그보다 작으면 그대로
                 return 값.toLocaleString();
             }
         }
 
+        // 2023-07 처럼 YYYY-MM 형식으로 바꾸는 헬퍼 함수
+        function toYYYYMM(dateObj) {
+            const year = dateObj.getFullYear();
+            // 월(getMonth())는 0부터 시작하므로 +1, 그리고 두 자리로 맞춤
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            return `${year}-${month}`;
+        }
+
         async function 가져오기() {
-            const 응답 = await fetch('5.json'); // 5.json 파일에서 Base64 형태의 string을 가져옵니다.
-            const base64Data = await 응답.text(); // Base64 문자열로 가져오기
-            const jsonData = JSON.parse(atob(base64Data)); // Base64 문자열을 디코딩하여 JSON으로 변환
+            const 응답 = await fetch('5.json'); 
+            const base64Data = await 응답.text();
+            const jsonData = JSON.parse(atob(base64Data)); 
             return jsonData;
         }
 
@@ -85,12 +87,15 @@
         }
 
         function 차트생성(정렬된데이터) {
-            var 월별 = 정렬된데이터.map(항목 => 
-                new Date(항목.month).toLocaleDateString('ko-KR', { year: 'numeric', month: 'short' })
-            );
-            var 볼륨달러 = 정렬된데이터.map(항목 => 항목.volume_dollar);
+            // 월별 라벨을 2023-07 같은 형태로 만들기
+            const 월별 = 정렬된데이터.map(항목 => {
+                const d = new Date(항목.month);
+                return toYYYYMM(d);
+            });
 
-            var 옵션 = {
+            const 볼륨달러 = 정렬된데이터.map(항목 => 항목.volume_dollar);
+
+            const 옵션 = {
                 chart: {
                     type: 'line',
                     height: '100%',
@@ -132,8 +137,8 @@
                     theme: 'light',
                     y: {
                         formatter: function (값) {
-                            // 축약 사용 시: return '$' + 축약표시(값);
-                            // 풀 숫자를 보고 싶으면:
+                            // 축약하려면: return '$' + 축약표시(값);
+                            // 전체 숫자 표시:
                             return '$' + 값.toLocaleString();
                         }
                     }
@@ -150,17 +155,19 @@
                 }
             };
 
-            var 차트 = new ApexCharts(document.querySelector("#chart"), 옵션);
+            const 차트 = new ApexCharts(document.querySelector("#chart"), 옵션);
             차트.render();
         }
 
-        가져오기().then(데이터 => {
-            var 필터링된데이터 = 중복제거(데이터);
-            var 정렬된데이터 = 날짜정렬(필터링된데이터);
-            차트생성(정렬된데이터);
-        }).catch(error => {
-            console.error('데이터를 가져오는 중 오류 발생:', error);
-        });
+        가져오기()
+          .then(데이터 => {
+              const 필터링된데이터 = 중복제거(데이터);
+              const 정렬된데이터 = 날짜정렬(필터링된데이터);
+              차트생성(정렬된데이터);
+          })
+          .catch(error => {
+              console.error('데이터를 가져오는 중 오류 발생:', error);
+          });
     </script>
 </body>
 </html>
