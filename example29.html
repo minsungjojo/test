@@ -12,8 +12,8 @@
             padding: 0;
             width: 100vw;
             height: 100vh;
-            background-color: #ffffff;  /* 배경 흰색 */
-            color: #000000;            /* 기본 글자색 검정 */
+            background-color: #FFFFFF; /* 흰색 배경 */
+            color: #000000;           /* 검정 글자 */
             overflow: hidden;
         }
         #chart {
@@ -42,6 +42,7 @@
 
     가져오기().then(data => {
         // (A) 날짜 문자열을 ISO8601로 변환: "YYYY-MM-DDT00:00:00"
+        //     예) "2024-01-01 12:34:56" -> "2024-01-01T00:00:00"
         data.forEach(item => {
             const ymd = item.day.substring(0, 10).trim(); // YYYY-MM-DD
             item.isoDay = ymd + "T00:00:00";              // "YYYY-MM-DDT00:00:00"
@@ -70,10 +71,12 @@
         // (F) 날짜 순으로 정렬
         filteredData.sort((a, b) => new Date(a.isoDay) - new Date(b.isoDay));
 
-        // (G) x축 카테고리(날짜) 목록
+        // (G) x축 카테고리(날짜) 목록 (중복 제거)
+        //     여기서 'categories'는 "YYYY-MM-DDT00:00:00" 형태로 쓰며,
+        //     ApexCharts가 datetime으로 인식하도록 함
         const categories = [...new Set(filteredData.map(item => item.isoDay))];
 
-        // (H) 거래소 목록
+        // (H) 거래소 목록 (중복 제거)
         const exchanges = [...new Set(filteredData.map(item => item.exchange))];
 
         // (I) 거래소별 시리즈 구성
@@ -96,13 +99,12 @@
                 height: '100%',
                 width: '100%',
                 stacked: true,
-                background: '#ffffff',
-                // 확대 및 버튼 제거
-                zoom: {
-                    enabled: false
-                },
+                background: '#FFFFFF', 
                 toolbar: {
-                    show: false
+                    show: false  // 툴바 버튼 숨김
+                },
+                zoom: {
+                    enabled: false // 차트 확대(줌) 비활성화
                 }
             },
             series: series,
@@ -124,20 +126,35 @@
                 labels: {
                     style: {
                         colors: '#000000'
+                    },
+                    // 여기서 큰 숫자는 k, m, b로 표시
+                    formatter: function (value) {
+                        if (value >= 1_000_000_000) {
+                            // 10억 이상
+                            return (value / 1_000_000_000).toFixed(1) + 'b';
+                        } else if (value >= 1_000_000) {
+                            // 100만 이상
+                            return (value / 1_000_000).toFixed(1) + 'm';
+                        } else if (value >= 1_000) {
+                            // 1천 이상
+                            return (value / 1_000).toFixed(1) + 'k';
+                        } else {
+                            // 그 이하는 그대로
+                            return value;
+                        }
                     }
                 }
             },
             colors: [
-                '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728',
-                '#9467bd', '#8c564b', '#e377c2', '#7f7f7f',
-                '#bcbd22', '#17becf'
+                '#003f5c', '#bc5090', '#ffa600', '#58508d', '#ff6361',
+                '#a05195', '#d45087', '#f95d6a', '#2f4b7c', '#665191'
             ],
             tooltip: {
                 enabled: true,
                 shared: true,
                 followCursor: true,
                 intersect: false,
-                theme: 'dark',
+                theme: 'light',
                 style: {
                     fontSize: '14px',
                     padding: 10
@@ -152,7 +169,8 @@
                 opacity: 1
             },
             legend: {
-                position: 'bottom',
+                position: 'bottom', // 범례 하단 배치
+                offsetY: 10,
                 labels: {
                     colors: '#000000'
                 }
