@@ -72,8 +72,6 @@
         filteredData.sort((a, b) => new Date(a.isoDay) - new Date(b.isoDay));
 
         // (G) x축 카테고리(날짜) 목록 (중복 제거)
-        //     여기서 'categories'는 "YYYY-MM-DDT00:00:00" 형태로 쓰며,
-        //     ApexCharts가 datetime으로 인식하도록 함
         const categories = [...new Set(filteredData.map(item => item.isoDay))];
 
         // (H) 거래소 목록 (중복 제거)
@@ -99,12 +97,13 @@
                 height: '100%',
                 width: '100%',
                 stacked: true,
-                background: '#FFFFFF', 
+                background: '#FFFFFF', // 차트 내부 배경 흰색
+                // 툴바와 줌 기능 비활성화
                 toolbar: {
-                    show: false  // 툴바 버튼 숨김
+                    show: false
                 },
                 zoom: {
-                    enabled: false // 차트 확대(줌) 비활성화
+                    enabled: false
                 }
             },
             series: series,
@@ -127,27 +126,31 @@
                     style: {
                         colors: '#000000'
                     },
-                    // 여기서 큰 숫자는 k, m, b로 표시
                     formatter: function (value) {
                         if (value >= 1_000_000_000) {
-                            // 10억 이상
-                            return (value / 1_000_000_000).toFixed(1) + 'b';
+                            return (value / 1_000_000_000).toFixed(1) + 'b'; // 10억 이상
                         } else if (value >= 1_000_000) {
-                            // 100만 이상
-                            return (value / 1_000_000).toFixed(1) + 'm';
+                            return (value / 1_000_000).toFixed(1) + 'm';     // 100만 이상
                         } else if (value >= 1_000) {
-                            // 1천 이상
-                            return (value / 1_000).toFixed(1) + 'k';
+                            return (value / 1_000).toFixed(1) + 'k';         // 1천 이상
                         } else {
-                            // 그 이하는 그대로
                             return value;
                         }
                     }
                 }
             },
+            // 밝은 색상 팔레트 예시
             colors: [
-                '#003f5c', '#bc5090', '#ffa600', '#58508d', '#ff6361',
-                '#a05195', '#d45087', '#f95d6a', '#2f4b7c', '#665191'
+                '#FFD700', // Gold
+                '#FF69B4', // HotPink
+                '#87CEEB', // SkyBlue
+                '#00FA9A', // MediumSpringGreen
+                '#FFA500', // Orange
+                '#32CD32', // LimeGreen
+                '#FFC0CB', // Pink
+                '#FFFF00', // Yellow
+                '#00BFFF', // DeepSkyBlue
+                '#FFA07A'  // LightSalmon
             ],
             tooltip: {
                 enabled: true,
@@ -169,7 +172,7 @@
                 opacity: 1
             },
             legend: {
-                position: 'bottom', // 범례 하단 배치
+                position: 'bottom',
                 offsetY: 10,
                 labels: {
                     colors: '#000000'
