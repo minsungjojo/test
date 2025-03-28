@@ -12,8 +12,8 @@
             padding: 0;
             width: 100vw;
             height: 100vh;
-            background-color: #000000;
-            color: #ffffff;
+            background-color: #ffffff;  /* 배경 흰색 */
+            color: #000000;            /* 기본 글자색 검정 */
             overflow: hidden;
         }
         #chart {
@@ -42,7 +42,6 @@
 
     가져오기().then(data => {
         // (A) 날짜 문자열을 ISO8601로 변환: "YYYY-MM-DDT00:00:00"
-        //     예) "2024-01-01 12:34:56" -> "2024-01-01T00:00:00"
         data.forEach(item => {
             const ymd = item.day.substring(0, 10).trim(); // YYYY-MM-DD
             item.isoDay = ymd + "T00:00:00";              // "YYYY-MM-DDT00:00:00"
@@ -71,12 +70,10 @@
         // (F) 날짜 순으로 정렬
         filteredData.sort((a, b) => new Date(a.isoDay) - new Date(b.isoDay));
 
-        // (G) x축 카테고리(날짜) 목록 (중복 제거)
-        //     여기서 'categories'는 "YYYY-MM-DDT00:00:00" 형태로 쓰며,
-        //     ApexCharts가 datetime으로 인식하도록 함
+        // (G) x축 카테고리(날짜) 목록
         const categories = [...new Set(filteredData.map(item => item.isoDay))];
 
-        // (H) 거래소 목록 (중복 제거)
+        // (H) 거래소 목록
         const exchanges = [...new Set(filteredData.map(item => item.exchange))];
 
         // (I) 거래소별 시리즈 구성
@@ -99,11 +96,13 @@
                 height: '100%',
                 width: '100%',
                 stacked: true,
-                background: '#000000',
+                background: '#ffffff',
+                // 확대 및 버튼 제거
+                zoom: {
+                    enabled: false
+                },
                 toolbar: {
-                    tools: {
-                        download: false
-                    }
+                    show: false
                 }
             },
             series: series,
@@ -114,7 +113,7 @@
                     rotate: -45,
                     style: {
                         fontSize: '12px',
-                        colors: '#ffffff'
+                        colors: '#000000'
                     },
                     hideOverlappingLabels: true,
                     showDuplicates: false
@@ -124,13 +123,14 @@
             yaxis: {
                 labels: {
                     style: {
-                        colors: '#ffffff'
+                        colors: '#000000'
                     }
                 }
             },
             colors: [
-                '#FFD700', '#87CEEB', '#FF69B4', '#32CD32', '#FFA07A',
-                '#BA55D3', '#20B2AA', '#F08080', '#FF4500', '#6A5ACD'
+                '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728',
+                '#9467bd', '#8c564b', '#e377c2', '#7f7f7f',
+                '#bcbd22', '#17becf'
             ],
             tooltip: {
                 enabled: true,
@@ -152,9 +152,9 @@
                 opacity: 1
             },
             legend: {
-                position: 'bottom',         // 하단에 배치
+                position: 'bottom',
                 labels: {
-                    colors: '#ffffff'
+                    colors: '#000000'
                 }
             },
             dataLabels: {
