@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>거래소별 BTC 보유량 - 스택형 막대 차트</title>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <style>
+        /* 화면 꽉 차도록 설정 */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #000000;
+            color: #ffffff;
+            overflow: hidden;
+        }
+        #chart {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+<div id="chart"></div>
+
+<script>
+    // 1) Base64 디코딩을 통해 JSON 데이터를 가져오는 함수
+    async function 가져오기() {
+        try {
+            // '29.json' 안에 Base64 인코딩된 JSON 문자열이 있다고 가정
+            const 응답 = await fetch('29.json');
+            const base64Data = await 응답.text();          // Base64 인코딩된 문자열 읽기
+            const jsonData = JSON.parse(atob(base64Data)); // 디코딩 후 JSON 파싱
+            return jsonData;
+        } catch (error) {
+            console.error('데이터를 가져오는 중 오류가 발생했습니다:', error);
+            return [];
+        }
+    }
+
+    가져오기().then(data => {
+        // (A) 날짜 문자열을 ISO8601로 변환: "YYYY-MM-DDT00:00:00"
+        //     예) "2024-01-01 12:34:56" -> "2024-01-01T00:00:00"
+        data.forEach(item => {
+            const ymd = item.day.substring(0, 10).trim(); // YYYY-MM-DD
+            item.isoDay = ymd + "T00:00:00";              // "YYYY-MM-DDT00:00:00"
+        });
+
+        // (B) 데이터가 비어 있다면 종료
+        if (!data.length) {
+            console.log('데이터가 없습니다.');
+            return;
+        }
+
+        // (C) 가장 최근(최대) 날짜 찾기 (isoDay를 Date로 파싱)
+        const maxDateValue = Math.max(...data.map(item => new Date(item.isoDay).getTime()));
+        const maxDate = new Date(maxDateValue);
+
+        // (D) 최대 날짜 기준으로 3개월 전을 계산
+        const threeMonthsBeforeMax = new Date(maxDate);
+        threeMonthsBeforeMax.setMonth(threeMonthsBeforeMax.getMonth() - 3);
+
+        // (E) 3개월 전 ~ 최대 날짜 사이 데이터만 필터링
+        const filteredData = data.filter(item => {
+            const itemDate = new Date(item.isoDay);
+            return itemDate >= threeMonthsBeforeMax && itemDate <= maxDate;
+        });
+
+        // (F) 날짜 순으로 정렬
+        filteredData.sort((a, b) => new Date(a.isoDay) - new Date(b.isoDay));
+
+        // (G) x축 카테고리(날짜) 목록 (중복 제거)
+        //     여기서 'categories'는 "YYYY-MM-DDT00:00:00" 형태로 쓰며,
+        //     ApexCharts가 datetime으로 인식하도록 함
+        const categories = [...new Set(filteredData.map(item => item.isoDay))];
+
+        // (H) 거래소 목록 (중복 제거)
+        const exchanges = [...new Set(filteredData.map(item => item.exchange))];
+
+        // (I) 거래소별 시리즈 구성
+        const series = exchanges.map(exchange => {
+            return {
+                name: exchange,
+                data: categories.map(isoDay => {
+                    const entry = filteredData.find(
+                        item => item.isoDay === isoDay && item.exchange === exchange
+                    );
+                    return entry ? entry.value : 0;
+                })
+            };
+        });
+
+        // (J) ApexCharts 옵션
+        const options = {
+            chart: {
+                type: 'bar',
+                height: '100%',
+                width: '100%',
+                stacked: true,
+                background: '#000000',
+                toolbar: {
+                    tools: {
+                        download: false
+                    }
+                }
+            },
+            series: series,
+            xaxis: {
+                type: 'datetime',
+                categories: categories,
+                labels: {
+                    rotate: -45,
+                    style: {
+                        fontSize: '12px',
+                        colors: '#ffffff'
+                    },
+                    hideOverlappingLabels: true,
+                    showDuplicates: false
+                },
+                tickAmount: Math.floor(categories.length / 10)
+            },
+            yaxis: {
+                labels: {
+                    style: {
+                        colors: '#ffffff'
+                    }
+                }
+            },
+            colors: [
+                '#FFD700', '#87CEEB', '#FF69B4', '#32CD32', '#FFA07A',
+                '#BA55D3', '#20B2AA', '#F08080', '#FF4500', '#6A5ACD'
+            ],
+            tooltip: {
+                enabled: true,
+                shared: true,
+                followCursor: true,
+                intersect: false,
+                theme: 'dark',
+                style: {
+                    fontSize: '14px',
+                    padding: 10
+                },
+                y: {
+                    formatter: function (val) {
+                        return val.toFixed(2);
+                    }
+                }
+            },
+            fill: {
+                opacity: 1
+            },
+            legend: {
+                position: 'bottom',         // 하단에 배치
+                labels: {
+                    colors: '#ffffff'
+                }
+            },
+            dataLabels: {
+                enabled: false
+            }
+        };
+
+        // (K) 차트 생성 후 렌더링
+        const chart = new ApexCharts(document.querySelector("#chart"), options);
+        chart.render();
+    });
+</script>
+</body>
+</html>
