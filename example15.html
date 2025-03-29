@@ -92,10 +92,11 @@
           xaxis: {
             categories: categories,
             labels: {
-              style: { fontSize: "10px", colors: "#000" }
-            },
-            // 큰 화면에서는 전체 날짜 표시
-            tickAmount: categories.length 
+              // 겹칠 경우 ApexCharts가 자동으로 숨길 수 있게 설정
+              hideOverlappingLabels: true,
+              style: { colors: "#000" }
+            }
+            // 여기서는 tickAmount를 지정하지 않음 => 너비가 충분하면 최대한 많이 표시
           },
           yaxis: {
             labels: {
@@ -131,7 +132,7 @@
           dataLabels: { enabled: false },
           responsive: [
             {
-              // 800px 미만인 경우에만 tickAmount를 3으로 제한
+              // 너비가 800px 미만이 되면 x축 레이블(날짜)을 3개만 표시
               breakpoint: 800,
               options: {
                 xaxis: {
