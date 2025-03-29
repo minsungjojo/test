@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>스택형 막대 차트</title>
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -30,12 +30,10 @@
 </head>
 <body>
   <main>
-    <!-- 차트를 담을 영역 -->
     <div class="chart-container">
       <div id="chart"></div>
     </div>
   </main>
-
   <script>
     async function 가져오기() {
       // Base64 인코딩된 JSON 파일 경로
@@ -60,7 +58,7 @@
           return {
             name: narrative,
             data: categories.map(date => {
-              const entriesForDate = data.filter(item => item.date === date);
+              const entriesForDate = data.filter(d => d.date === date);
               const totalForDate = entriesForDate.reduce((sum, item) => sum + item.count, 0);
               const entry = entriesForDate.find(item => item.narrative === narrative);
               return entry ? (entry.count / totalForDate) * 100 : 0;
@@ -87,23 +85,17 @@
             stackType: "100%",
             background: "#fff",
             toolbar: {
-              tools: {
-                download: false
-              }
+              tools: { download: false }
             }
           },
           series: series,
           xaxis: {
             categories: categories,
-            tickAmount: 6,  // 자동으로 레이블 수를 6개 정도로 조정
             labels: {
-              rotate: 0,
-              style: { fontSize: "10px", colors: "#000" },
-              // 직접 스킵하려면 formatter를 사용합니다 (예: 2개에 1개씩만 보여주기)
-              formatter: function (val, index) {
-                return index % 2 === 0 ? val : "";
-              }
-            }
+              style: { fontSize: "10px", colors: "#000" }
+            },
+            // 큰 화면에서는 전체 날짜 표시
+            tickAmount: categories.length 
           },
           yaxis: {
             labels: {
@@ -126,56 +118,24 @@
             y: {
               formatter: val => val.toFixed(2) + "%"
             },
-            marker: {
-              fillColors: colors
-            },
-            padding: {
-              left: 10,
-              right: 10,
-              top: 10,
-              bottom: 10
-            }
+            marker: { fillColors: colors },
+            padding: { left: 10, right: 10, top: 10, bottom: 10 }
           },
-          fill: {
-            opacity: 1
-          },
+          fill: { opacity: 1 },
           legend: {
             position: "bottom",
             horizontalAlign: "center",
             offsetY: 0,
-            labels: {
-              colors: "#000"
-            }
+            labels: { colors: "#000" }
           },
-          dataLabels: {
-            enabled: false
-          },
+          dataLabels: { enabled: false },
           responsive: [
             {
-              breakpoint: 768,
+              // 800px 미만인 경우에만 tickAmount를 3으로 제한
+              breakpoint: 800,
               options: {
                 xaxis: {
-                  tickAmount: 4,
-                  labels: {
-                    style: { fontSize: "9px" },
-                    formatter: function (val, index) {
-                      return index % 2 === 0 ? val : "";
-                    }
-                  }
-                }
-              }
-            },
-            {
-              breakpoint: 480,
-              options: {
-                xaxis: {
-                  tickAmount: 3,
-                  labels: {
-                    style: { fontSize: "8px" },
-                    formatter: function (val, index) {
-                      return index % 2 === 0 ? val : "";
-                    }
-                  }
+                  tickAmount: 3
                 }
               }
             }
