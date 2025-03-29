@@ -56,7 +56,6 @@
                     name: '연 수익률 (%)',
                     data: seriesData
                 }],
-                // 흰 배경에 잘 어울리는 예시 색상
                 colors: ['#3498db', '#2ecc71', '#f1c40f', '#e67e22', '#9b59b6', '#34495e', '#1abc9c', '#e74c3c'],
                 xaxis: {
                     categories: categories,
@@ -93,15 +92,15 @@
                     }
                 },
                 tooltip: {
-                    theme: 'light', // 흰 배경에 어울리는 밝은 테마
+                    theme: 'light', 
                     style: {
-                        fontSize: '18px', // 툴팁 폰트 크기
-                        color: '#000', // 툴팁 글자색
-                        padding: 10 // 툴팁 여백
+                        fontSize: '18px',
+                        color: '#000',
+                        padding: 10
                     },
                     y: {
                         formatter: function(value) {
-                            return value + '%'; // 툴팁에 퍼센트로 표시
+                            return value + '%';
                         }
                     }
                 },
@@ -111,10 +110,10 @@
                         color: '#000'
                     }
                 },
-                // 반응형 설정 - 화면 너비가 480px 이하일 경우 데이터 라벨 비활성화
+                // 반응형 설정 - 화면 너비가 800px 이하일 경우 데이터 라벨 비활성화
                 responsive: [
                     {
-                        breakpoint: 480,
+                        breakpoint: 800,
                         options: {
                             dataLabels: {
                                 enabled: false
