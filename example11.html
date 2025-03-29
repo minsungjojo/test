@@ -120,6 +120,7 @@
                 }
             },
             dataLabels: {
+                enabled: true,
                 style: {
                     colors: ['#000000']
                 }
@@ -132,7 +133,18 @@
             // 범례를 표시하지 않도록 설정
             legend: {
                 show: false
-            }
+            },
+            // 반응형 설정: 800px 미만일 때 dataLabels 미표시
+            responsive: [
+                {
+                    breakpoint: 800,
+                    options: {
+                        dataLabels: {
+                            enabled: false
+                        }
+                    }
+                }
+            ]
         };
 
         var chart = new ApexCharts(document.querySelector("#chart"), options);
