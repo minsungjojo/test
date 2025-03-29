@@ -45,6 +45,9 @@
             return item.symbol;
         }).reverse();
 
+        // 모바일(800px 미만) 여부 판단
+        var isMobile = window.innerWidth < 800;
+
         var options = {
             chart: {
                 type: 'bar',
@@ -65,8 +68,9 @@
                 categories: categories,
                 labels: {
                     style: {
-                        colors: Array(categories.length).fill('#000'), // X축 라벨 검정색
-                        fontSize: '12px'
+                        // 모바일이면 글자 크기를 조금 줄입니다
+                        fontSize: isMobile ? '10px' : '12px',
+                        colors: Array(categories.length).fill('#000') // X축 라벨 검정색
                     }
                 },
                 axisBorder: {
@@ -112,7 +116,8 @@
                 }
             },
             dataLabels: {
-                enabled: true,
+                // 모바일 화면일 경우 숫자(Label)를 제거
+                enabled: !isMobile,
                 style: {
                     colors: ['#ffffff'] // 바 내부에 표시될 데이터 라벨(흰색)
                 },
