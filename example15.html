@@ -54,26 +54,19 @@
         const narratives = ["L1", "Runes", "L2", "DEX", "AI", "LRT", "Perpetuals"];
 
         // 각 narrative별 시리즈 데이터 구성
-        const series = narratives.map(narrative => {
-          return {
-            name: narrative,
-            data: categories.map(date => {
-              const entriesForDate = data.filter(d => d.date === date);
-              const totalForDate = entriesForDate.reduce((sum, item) => sum + item.count, 0);
-              const entry = entriesForDate.find(item => item.narrative === narrative);
-              return entry ? (entry.count / totalForDate) * 100 : 0;
-            })
-          };
-        });
+        const series = narratives.map(narrative => ({
+          name: narrative,
+          data: categories.map(date => {
+            const entriesForDate = data.filter(d => d.date === date);
+            const totalForDate = entriesForDate.reduce((sum, item) => sum + item.count, 0);
+            const entry = entriesForDate.find(item => item.narrative === narrative);
+            return entry ? (entry.count / totalForDate) * 100 : 0;
+          })
+        }));
 
         const colors = [
-          "#2E93FA",
-          "#66DA26",
-          "#546E7A",
-          "#E91E63",
-          "#FF9800",
-          "#9C27B0",
-          "#20B2AA"
+          "#2E93FA", "#66DA26", "#546E7A",
+          "#E91E63", "#FF9800", "#9C27B0", "#20B2AA"
         ];
 
         const options = {
@@ -91,11 +84,14 @@
           series: series,
           xaxis: {
             categories: categories,
-            // rotate: 0 => x축 레이블이 옆으로 눕지 않고 일자로 표시
+            // ▼ tickAmount로 표시할 라벨 수를 제한
+            // 숫자를 줄일수록, 날짜 간 간격이 더 넓어집니다. (예: 5, 6, 7 등)
+            tickAmount: 6,
             labels: {
+              // 옆으로 눕지 않도록 0도로 설정
               rotate: 0,
-              // 겹칠 경우 ApexCharts가 자동으로 숨깁니다.
-              hideOverlappingLabels: true,
+              // hideOverlappingLabels를 false로 하면 ApexCharts가 겹치더라도 숨기지 않습니다.
+              hideOverlappingLabels: false,
               style: { colors: "#000" }
             }
           },
@@ -130,18 +126,9 @@
             offsetY: 0,
             labels: { colors: "#000" }
           },
-          dataLabels: { enabled: false },
-          responsive: [
-            {
-              // 너비가 800px 미만이면 x축 날짜를 3개로 제한
-              breakpoint: 800,
-              options: {
-                xaxis: {
-                  tickAmount: 3
-                }
-              }
-            }
-          ]
+          dataLabels: {
+            enabled: false
+          }
         };
 
         const chart = new ApexCharts(document.querySelector("#chart"), options);
