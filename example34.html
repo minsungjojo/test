@@ -51,6 +51,8 @@
         chart: {
           type: 'line',
           height: '100%',
+          background: '#ffffff',    // 차트 배경 흰색
+          foreColor: '#000000',     // 차트 내 텍스트(축 라벨 등)를 검정색으로
           toolbar: {
             show: false
           },
@@ -68,9 +70,15 @@
             data: forecastedData
           }
         ],
+        // 선 색상은 필요에 따라 그대로 사용하거나 변경 가능
         colors: ['#FF4560', '#008FFB'],
         xaxis: {
-          type: 'datetime'
+          type: 'datetime',
+          labels: {
+            style: {
+              colors: '#000000'
+            }
+          }
         },
         yaxis: {
           labels: {
@@ -84,6 +92,9 @@
               } else {
                 return value.toFixed(2);
               }
+            },
+            style: {
+              colors: '#000000'
             }
           }
         },
