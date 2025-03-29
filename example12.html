@@ -2,6 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <!-- 뷰포트 설정 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ApexCharts 예제</title>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
@@ -142,21 +143,38 @@
                         }
                     }
                 },
+                // 여기서부터 반응형 옵션
                 responsive: [
                     {
                         breakpoint: 768,
                         options: {
-                            xaxis: {
-                                labels: {
-                                    style: {
-                                        fontSize: '10px'
-                                    }
-                                }
-                            },
+                            // yaxis 설정을 "전체" 다시 써줌
                             yaxis: {
                                 labels: {
+                                    formatter: function (val) {
+                                        return formatKMB(val); // K/M/B 유지를 위해 formatter 재정의
+                                    },
                                     style: {
+                                        colors: '#000',
+                                        fontSize: '10px' // 모바일에서 더 작은 폰트
+                                    },
+                                    offsetX: 5
+                                }
+                                // 필요하다면 title이나 기타 속성도 다시 넣을 수 있음
+                            },
+                            // xaxis도 폰트만 줄이려면 아래처럼 다시 formatter를 포함
+                            xaxis: {
+                                labels: {
+                                    rotate: -45,
+                                    style: {
+                                        colors: '#000',
                                         fontSize: '10px'
+                                    },
+                                    formatter: function(value) {
+                                        const date = new Date(value);
+                                        const year = date.getFullYear();
+                                        const month = String(date.getMonth() + 1).padStart(2, '0');
+                                        return `${year}-${month}`;
                                     }
                                 }
                             },
