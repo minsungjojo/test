@@ -68,7 +68,6 @@
           };
         });
 
-        // 막대 색상 세트
         const colors = [
           "#2E93FA",
           "#66DA26",
@@ -79,7 +78,6 @@
           "#20B2AA"
         ];
 
-        // ApexCharts 옵션
         const options = {
           chart: {
             type: "bar",
@@ -89,21 +87,23 @@
             stackType: "100%",
             background: "#fff",
             toolbar: {
-              tools: { download: false }
+              tools: {
+                download: false
+              }
             }
           },
           series: series,
           xaxis: {
             categories: categories,
+            tickAmount: 6,  // 자동으로 레이블 수를 6개 정도로 조정
             labels: {
-              style: { colors: "#000" },
               rotate: 0,
-              showDuplicates: false,
-              hideOverlappingLabels: true,
-              trim: false,      
-              maxHeight: 100    
-            },
-            tickAmount: 6
+              style: { fontSize: "10px", colors: "#000" },
+              // 직접 스킵하려면 formatter를 사용합니다 (예: 2개에 1개씩만 보여주기)
+              formatter: function (val, index) {
+                return index % 2 === 0 ? val : "";
+              }
+            }
           },
           yaxis: {
             labels: {
@@ -126,40 +126,66 @@
             y: {
               formatter: val => val.toFixed(2) + "%"
             },
-            marker: { fillColors: colors },
-            padding: { left: 10, right: 10, top: 10, bottom: 10 }
+            marker: {
+              fillColors: colors
+            },
+            padding: {
+              left: 10,
+              right: 10,
+              top: 10,
+              bottom: 10
+            }
           },
-          fill: { opacity: 1 },
+          fill: {
+            opacity: 1
+          },
           legend: {
             position: "bottom",
             horizontalAlign: "center",
             offsetY: 0,
-            labels: { colors: "#000" }
+            labels: {
+              colors: "#000"
+            }
           },
-          dataLabels: { enabled: false },
+          dataLabels: {
+            enabled: false
+          },
           responsive: [
             {
               breakpoint: 768,
               options: {
-                xaxis: { tickAmount: 4 }
+                xaxis: {
+                  tickAmount: 4,
+                  labels: {
+                    style: { fontSize: "9px" },
+                    formatter: function (val, index) {
+                      return index % 2 === 0 ? val : "";
+                    }
+                  }
+                }
               }
             },
             {
               breakpoint: 480,
               options: {
-                xaxis: { tickAmount: 3 }
+                xaxis: {
+                  tickAmount: 3,
+                  labels: {
+                    style: { fontSize: "8px" },
+                    formatter: function (val, index) {
+                      return index % 2 === 0 ? val : "";
+                    }
+                  }
+                }
               }
             }
           ]
         };
 
-        // 차트 생성 및 렌더링
         const chart = new ApexCharts(document.querySelector("#chart"), options);
         chart.render();
       })
-      .catch(error =>
-        console.error("데이터를 가져오는 중 오류가 발생했습니다:", error)
-      );
+      .catch(error => console.error("데이터를 가져오는 중 오류가 발생했습니다:", error));
   </script>
 </body>
 </html>
