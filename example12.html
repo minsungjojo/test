@@ -40,20 +40,15 @@
 
             let formatted;
             if (absVal >= 1.0e9) {
-                // 10억 이상 -> B
                 formatted = (absVal / 1.0e9).toFixed(2) + "B USD";
             } else if (absVal >= 1.0e6) {
-                // 백만 이상 -> M
                 formatted = (absVal / 1.0e6).toFixed(2) + "M USD";
             } else if (absVal >= 1.0e3) {
-                // 천 이상 -> K
                 formatted = (absVal / 1.0e3).toFixed(2) + "K USD";
             } else {
-                // 천 미만
                 formatted = absVal.toFixed(2) + " USD";
             }
 
-            // 음수면 '-' 붙이기
             return sign + formatted;
         }
 
@@ -111,7 +106,6 @@
                             colors: '#000',
                             fontSize: '23px'
                         },
-                        // 연-월(YYYY-MM)만 표시
                         formatter: function(value) {
                             const date = new Date(value);
                             const year = date.getFullYear();
@@ -145,7 +139,6 @@
                         }
                     }
                 },
-                // dataLabels를 끄고(또는 켜고) 싶다면 아래 옵션 수정
                 dataLabels: {
                     enabled: false
                 },
@@ -157,12 +150,41 @@
                         fontSize: '20px'
                     },
                     y: {
-                        // 툴팁도 K, M, B 포맷 적용
                         formatter: function (val) {
                             return formatKMB(val);
                         }
                     }
-                }
+                },
+                /* 
+                  ↓↓↓ 여기서부터 반응형 옵션을 추가합니다 ↓↓↓
+                */
+                responsive: [
+                  {
+                    // 가로폭이 768px 이하인 경우
+                    breakpoint: 768,
+                    options: {
+                      xaxis: {
+                        labels: {
+                          style: {
+                            fontSize: '10px' // 모바일에서 더 작은 폰트
+                          }
+                        }
+                      },
+                      yaxis: {
+                        labels: {
+                          style: {
+                            fontSize: '10px'
+                          }
+                        }
+                      },
+                      tooltip: {
+                        style: {
+                          fontSize: '14px'
+                        }
+                      }
+                    }
+                  }
+                ]
             };
 
             var chart = new ApexCharts(document.querySelector("#chart"), options);
