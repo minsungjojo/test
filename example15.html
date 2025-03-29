@@ -91,12 +91,11 @@
           series: series,
           xaxis: {
             categories: categories,
-            // 큰 화면에서는 모든 날짜를 라벨로 표시할 수 있도록 설정
-            tickAmount: categories.length,
+            // rotate: 0 => x축 레이블이 옆으로 눕지 않고 일자로 표시
             labels: {
-              // ApexCharts가 라벨을 임의로 숨기거나 겹침 방지를 안 하도록 설정
-              showDuplicates: true,
-              hideOverlappingLabels: false,
+              rotate: 0,
+              // 겹칠 경우 ApexCharts가 자동으로 숨깁니다.
+              hideOverlappingLabels: true,
               style: { colors: "#000" }
             }
           },
@@ -134,7 +133,7 @@
           dataLabels: { enabled: false },
           responsive: [
             {
-              // 800px 미만이면 x축 날짜를 3개로 제한
+              // 너비가 800px 미만이면 x축 날짜를 3개로 제한
               breakpoint: 800,
               options: {
                 xaxis: {
