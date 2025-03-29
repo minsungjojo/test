@@ -87,7 +87,7 @@
                     show: false
                 },
                 dataLabels: {
-                    enabled: true,
+                    enabled: true, // 기본적으로 데스크톱에서는 라벨이 보이도록 함
                     style: {
                         colors: ['#000'] // 데이터 라벨 색상을 검정으로
                     }
@@ -108,9 +108,20 @@
                 title: {
                     text: '',
                     style: {
-                        color: '#000' // 제목 색상을 검정으로 (필요 시)
+                        color: '#000'
                     }
-                }
+                },
+                // 반응형 설정 - 화면 너비가 480px 이하일 경우 데이터 라벨 비활성화
+                responsive: [
+                    {
+                        breakpoint: 480,
+                        options: {
+                            dataLabels: {
+                                enabled: false
+                            }
+                        }
+                    }
+                ]
             };
 
             // 차트 렌더링
