@@ -35,8 +35,8 @@
         // K, M, B 변환 + 음수 처리 함수
         function formatKMB(num) {
             const val = Number(num) || 0;
-            const sign = val < 0 ? "-" : "";   // 음수 여부
-            const absVal = Math.abs(val);      // 절댓값으로 변환
+            const sign = val < 0 ? "-" : "";
+            const absVal = Math.abs(val);
 
             let formatted;
             if (absVal >= 1.0e9) {
@@ -65,7 +65,6 @@
                 }
             });
 
-            // 차트에 사용할 시리즈 데이터 생성
             const seriesData = Object.keys(dateWiseData).map(date => ({
                 x: date,
                 y: dateWiseData[date]
@@ -77,15 +76,9 @@
                     height: '100%',
                     width: '100%',
                     background: '#fff',
-                    toolbar: {
-                        show: false // 모든 버튼 비활성화
-                    },
-                    zoom: {
-                        enabled: false // 차트 확대 비활성화
-                    },
-                    animations: {
-                        enabled: false
-                    }
+                    toolbar: { show: false },
+                    zoom: { enabled: false },
+                    animations: { enabled: false }
                 },
                 grid: {
                     padding: {
@@ -97,7 +90,7 @@
                     name: '금액 흐름(USD)',
                     data: seriesData
                 }],
-                colors: ['#000000'], // 막대 그래프 색상: 검정
+                colors: ['#000000'],
                 xaxis: {
                     type: 'datetime',
                     labels: {
@@ -112,9 +105,6 @@
                             const month = String(date.getMonth() + 1).padStart(2, '0');
                             return `${year}-${month}`;
                         }
-                    },
-                    title: {
-                        text: ''
                     }
                 },
                 yaxis: {
@@ -127,9 +117,6 @@
                             fontSize: '18px'
                         },
                         offsetX: 5
-                    },
-                    title: {
-                        text: ''
                     }
                 },
                 plotOptions: {
@@ -155,35 +142,31 @@
                         }
                     }
                 },
-                /* 
-                  ↓↓↓ 여기서부터 반응형 옵션을 추가합니다 ↓↓↓
-                */
                 responsive: [
-                  {
-                    // 가로폭이 768px 이하인 경우
-                    breakpoint: 768,
-                    options: {
-                      xaxis: {
-                        labels: {
-                          style: {
-                            fontSize: '10px' // 모바일에서 더 작은 폰트
-                          }
+                    {
+                        breakpoint: 768,
+                        options: {
+                            xaxis: {
+                                labels: {
+                                    style: {
+                                        fontSize: '10px'
+                                    }
+                                }
+                            },
+                            yaxis: {
+                                labels: {
+                                    style: {
+                                        fontSize: '10px'
+                                    }
+                                }
+                            },
+                            tooltip: {
+                                style: {
+                                    fontSize: '14px'
+                                }
+                            }
                         }
-                      },
-                      yaxis: {
-                        labels: {
-                          style: {
-                            fontSize: '10px'
-                          }
-                        }
-                      },
-                      tooltip: {
-                        style: {
-                          fontSize: '14px'
-                        }
-                      }
                     }
-                  }
                 ]
             };
 
