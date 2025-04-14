@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>VWAP Chart By Symbol</title>
+  <!-- ECharts 라이브러리 (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+</head>
+<body>
+  <h1>Symbol 별 VWAP 차트</h1>
+
+  <!-- 심볼 선택 dropdown -->
+  <label for="symbolSelect">심볼 선택: </label>
+  <select id="symbolSelect"></select>
+
+  <!-- 차트를 표시할 DOM -->
+  <div id="chartContainer" style="width: 1000px; height: 500px; margin-top: 20px;"></div>
+
+  <script>
+    // 전역 변수
+    let groupedData = {};   // { symbolA: [[time, vwap], ...], symbolB: [...], ... }
+    let symbolList = [];    // [symbolA, symbolB, ...]
+
+    // 1) JSON 파일 fetch
+    fetch('allpricehistory.json')
+      .then(res => res.json())
+      .then(jsonData => {
+        // 2) [time, symbol, vwap] 형태로 평탄화
+        const rows = [];
+        jsonData.forEach(entry => {
+          const t = entry.time;
+          entry.data.forEach(item => {
+            rows.push({
+              time: t,
+              symbol: item.symbol,
+              vwap: item.vwap
+            });
+          });
+        });
+
+        // 3) 시간 문자열 -> Date 변환 후 정렬
+        rows.forEach(r => {
+          r.time = new Date(r.time); 
+        });
+        rows.sort((a, b) => a.time - b.time);
+
+        // 4) 심볼별 데이터 그룹화
+        groupedData = {};
+        rows.forEach(r => {
+          const s = r.symbol;
+          if (!groupedData[s]) {
+            groupedData[s] = [];
+          }
+          // ECharts는 [날짜문자열, 값] 형태 권장
+          groupedData[s].push([r.time.toISOString(), r.vwap]);
+        });
+
+        // 심볼 목록 구하기
+        symbolList = Object.keys(groupedData);
+
+        // 5) 심볼 <select>에 옵션 채우기
+        const selectEl = document.getElementById('symbolSelect');
+        symbolList.forEach(sym => {
+          const option = document.createElement('option');
+          option.value = sym;
+          option.textContent = sym;
+          selectEl.appendChild(option);
+        });
+
+        // 6) select 변경 이벤트 -> 차트 업데이트
+        selectEl.addEventListener('change', () => {
+          const selectedSymbol = selectEl.value;
+          updateChart(selectedSymbol);
+        });
+
+        // 페이지가 열리면, 디폴트로 첫 번째 심볼 차트 보여주기
+        if (symbolList.length > 0) {
+          selectEl.value = symbolList[0];
+          updateChart(symbolList[0]);
+        }
+      })
+      .catch(err => {
+        console.error('JSON 로드 실패:', err);
+      });
+
+    // 7) ECharts 초기화 (한 번만)
+    const chartDom = document.getElementById('chartContainer');
+    const myChart = echarts.init(chartDom);
+
+    // 8) 차트를 업데이트하는 함수
+    function updateChart(symbol) {
+      const data = groupedData[symbol] || [];
+
+      // Y축 범위 계산 (여유 10%)
+      if (data.length > 0) {
+        const vwapValues = data.map(d => d[1]);
+        const minV = Math.min(...vwapValues);
+        const maxV = Math.max(...vwapValues);
+        const margin = (maxV - minV) * 0.1;
+        var chartMin = minV - margin;
+        var chartMax = maxV + margin;
+      } else {
+        // 데이터가 없을 경우 기본값
+        var chartMin = 0;
+        var chartMax = 1;
+      }
+
+      const option = {
+        title: {
+          text: `${symbol} - VWAP over Time`,
+          left: 'center'
+        },
+        tooltip: {
+          trigger: 'axis'
+        },
+        xAxis: {
+          type: 'time',
+          name: 'Time'
+        },
+        yAxis: {
+          type: 'value',
+          name: 'VWAP',
+          min: chartMin,
+          max: chartMax,
+          scale: true
+        },
+        series: [
+          {
+            type: 'line',
+            showSymbol: false,
+            symbol: 'none',
+            data: data
+          }
+        ]
+      };
+
+      myChart.setOption(option);
+    }
+  </script>
+</body>
+</html>
